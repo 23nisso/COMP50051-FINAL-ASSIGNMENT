@@ -2,18 +2,20 @@ import { Server } from "./Server";
 import { Router } from "express";
 import { AppDataSource } from "./data-source"; 
 import { RoleRouter } from "./routes/RoleRouter";
+import { UserRouter } from "./routes/UserRouter"
 import { RoleController } from "./controllers/RoleController";
+import { UserController } from "./controllers/UserController";
 
-const DEFAULT_PORT = 7063;
+const DEFAULT_PORT = 7063
 const port = process.env.SERVER_PORT || DEFAULT_PORT;
-
 if (!process.env.SERVER_PORT) {
-  console.log("PORT environment variable is not set, defaulting to " + DEFAULT_PORT);
+    console.log("PORT environment variable is not set, defaulting to " + DEFAULT_PORT);
 }
 
 const appDataSource = AppDataSource;
 
 const roleRouter = new RoleRouter(Router(), new RoleController());
-const server = new Server(port, roleRouter, appDataSource);
+const userRouter = new UserRouter(Router(), new UserController());
 
+const server = new Server(port, roleRouter, userRouter, appDataSource);
 server.start();

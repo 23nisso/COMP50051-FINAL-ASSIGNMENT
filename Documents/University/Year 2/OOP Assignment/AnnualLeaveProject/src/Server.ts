@@ -5,12 +5,14 @@ import { StatusCodes } from "http-status-codes";
 import morgan, {StreamOptions} from "morgan";
 import { Logger } from "./helper/Logger";
 import { ResponseHandler } from "./helper/ResponseHandler";
+import { UserRouter} from "./routes/UserRouter";
 
 export class Server {
     private readonly app: express.Application;
 
     constructor(private readonly port: string | number,
         private readonly roleRouter: RoleRouter,
+        private readonly userRouter: UserRouter,
         private readonly appDataSource: DataSource
 ) {
         this.app = express();
@@ -32,6 +34,7 @@ private initialiseMiddlewares() {
     
 private initialiseRoutes() {
 this.app.use("/api/roles", this.roleRouter.getRouter());
+this.app.use("/api/users", this.userRouter.getRouter());
 }
 
 private initialiseErrorHandling() {

@@ -15,6 +15,5 @@ export class RoleRouter {
         this.router.post('/', this.roleController.create);
         this.router.delete('/:id', this.roleController.delete);
         this.router.patch('/:id', this.roleController.update);
-
     }
 }

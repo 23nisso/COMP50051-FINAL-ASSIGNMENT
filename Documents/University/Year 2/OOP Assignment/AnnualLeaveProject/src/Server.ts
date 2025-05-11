@@ -1,39 +1,59 @@
-import express, { Application, Request, Response } from "express"; // Imports Express and TypeScript types, like HTTP request and response objects
-import { MyRouter } from "./routes/MyRouter"; // Imports the MyRouter class from the routes folder
-import { StatusCodes } from "http-status-codes"; // Imports HTTP status codes from the http-status-codes package
+import express , { Request, Response } from "express";
+import { DataSource } from "typeorm";
+import { RoleRouter} from "./routes/RoleRouter";
+import { StatusCodes } from "http-status-codes";
+import morgan, {StreamOptions} from "morgan";
+import { Logger } from "./helper/Logger";
+import { ResponseHandler } from "./helper/ResponseHandler";
 
-export class Server { // Defines the Server class
-	private readonly app: Application; // Defines the app property of type Application from Express
+export class Server {
+    private readonly app: express.Application;
 
-	constructor(private readonly myRouter: MyRouter, // Takes an instance of MyRouter as a parameter
-				private readonly port: number) { // Takes a port number as a parameter
-	this.app = express(); // Creates the Express application instance and stories it in this.app
+    constructor(private readonly port: string | number,
+        private readonly roleRouter: RoleRouter,
+        private readonly appDataSource: DataSource
+) {
+        this.app = express();
 
-	this.initialiseMiddlewares(); // Sets up the middlewares for the application
+        this.initialiseMiddlewares();
+        this.initialiseRoutes();
+        this.initialiseErrorHandling();
+}
+private initialiseMiddlewares() {
+    const morganStream: StreamOptions = {
+    write: (message: string): void => {
+    Logger.info(message.trim());
+    }
+    };
 
-	this.initialiseRoutes(); // Sets up the routes for the application
-
-	this.initialiseErrorHandling(); //Sets up the error handling for the application (This is last)
-	}
-
-	private initialiseMiddlewares() { // Sets up the middlewares to parse (interpret/read)
-	this.app.use(express.json()); // incoming requests as JSONs
-	}
-
-	private initialiseErrorHandling() { // Sets up the error handling for when any unmatched routes are requested
-	this.app.get("*", (req: Request, res: Response) => { // This catches any GET request that doesn't match any of the defined routes
-		const requestedUrl =`${req.protocol}://${req.get('host')}${req.originalUrl}`; // Gets the requested URL
-		res.status(StatusCodes.NOT_FOUND).send("Route " + requestedUrl + " not found"); // Sends a 404 Not Found response with the requested URL
-	});
+    this.app.use(express.json());
+    this.app.use(morgan("combined", { stream: morganStream }));
+    }
+    
+private initialiseRoutes() {
+this.app.use("/api/roles", this.roleRouter.getRouter());
 }
 
-	private initialiseRoutes(): void { // Mounts any custom router at the /api endpoint
-	this.app.use("/api", this.myRouter.getRouter()); // Any route inside MyRouter will be prefixed with /api
+private initialiseErrorHandling() {
+        this.app.use("/", (req: Request, res: Response) => {
+            const requestedUrl =`${req.protocol}://${req.get('host')}${req.originalUrl}`;
+            res.status(StatusCodes.NOT_FOUND).send("Route " + requestedUrl + " not found");
+});
 }
 
-	public start(): void { // Public method start just starts the server
-	this.app.listen(this.port, () => { // Listens on the specified port
-		console.log(`Server listening on port ${this.port}`); // Logs a message to the console when the server starts
-		});
-	}
-}
+public async start() {
+    await this.initialiseDataSource();
+    this.app.listen(this.port, () => {
+    Logger.info(`Server running on http://localhost:${this.port}`);
+    });
+    }
+
+    private async initialiseDataSource() {
+    try {
+    await this.appDataSource.initialize();
+    Logger.info("Data Source initialised");
+    } catch (error) {
+    Logger.error("Error during initialisation:", error);
+    throw error;
+    }
+}}

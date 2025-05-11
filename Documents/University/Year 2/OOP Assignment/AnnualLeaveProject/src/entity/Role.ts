@@ -4,7 +4,7 @@ import { IsNotEmpty, MaxLength } from 'class-validator';
 @Entity({ name: "role" })
 export class Role {
     @PrimaryGeneratedColumn()
-    id: number;
+    roleId: number;
 
     @Column()
     @IsNotEmpty({ message: 'Name is required' })

@@ -8,6 +8,20 @@ import { validate } from "class-validator";
 import { instanceToPlain } from 'class-transformer';
 
 export class UserController {
+  public static readonly ERROR_NO_USER_ID_PROVIDED = "No ID provided";
+  public static readonly ERROR_INVALID_USER_ID_FORMAT = "Invalid ID format";
+  public static readonly ERROR_USER_NOT_FOUND = "User not found";
+  public static readonly ERROR_USER_NOT_FOUND_WITH_ID = (id: number) => `User not found with ID: ${id}`;
+  public static readonly ERROR_PASSWORD_IS_BLANK = "Password is blank";
+  public static readonly ERROR_FAILED_TO_RETRIEVE_USERS = "Failed to retrieve users";
+  public static readonly ERROR_FAILED_TO_RETRIEVE_USER = "Failed to retrieve user";
+  public static readonly ERROR_USER_NOT_FOUND_FOR_DELETION = "User with the provided ID not found";
+  public static readonly ERROR_EMAIL_REQUIRED = "Email is required";
+  public static readonly ERROR_EMAIL_NOT_FOUND = (email: string) => `${email} not found`;
+  public static readonly ERROR_RETRIEVING_USER = (error: string) => `Error retrieving user: ${error}`;
+  public static readonly ERROR_UNABLE_TO_FIND_USER_EMAIL = (email: string) => `Unable to find user with the email: ${email}`;
+  public static readonly ERROR_VALIDATION_FAILED = "Validation failed";
+
   private userRepository: Repository<User>;
 
   constructor() {
@@ -21,13 +35,15 @@ export class UserController {
       });
 
       if (users.length === 0) {
-        ResponseHandler.sendSuccessResponse(res, StatusCodes.NO_CONTENT); 
+        ResponseHandler.sendSuccessResponse(res, [], StatusCodes.NO_CONTENT); 
       }
 
       ResponseHandler.sendSuccessResponse(res, users);
 
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.INTERNAL_SERVER_ERROR, `Failed to retrieve users: ${error.message}`);
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.INTERNAL_SERVER_ERROR, 
+                                      `${UserController.ERROR_FAILED_TO_RETRIEVE_USERS}: ${error.message}`);
     }
   };
 
@@ -35,29 +51,37 @@ export class UserController {
     const email = req.params.emailAddress;
 
     if (!email || email.trim().length === 0) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, "Email is required");
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.BAD_REQUEST, 
+                                        UserController.ERROR_EMAIL_REQUIRED);
       return;
     }
 
     try {
-      const user = await this.userRepository.findOne({ where: { email: email },  
+      const user = await this.userRepository.find({ where: { email: email },  
                                                     relations: ["role"]});
-      if (!user) {
-        ResponseHandler.sendErrorResponse(res, StatusCodes.NOT_FOUND, `User not found with email: ${email}`);
+      if (user.length === 0) {
+        ResponseHandler.sendErrorResponse(res, 
+                                          StatusCodes.BAD_REQUEST, 
+                                          `${email} not found`);
         return;
       }
 
       ResponseHandler.sendSuccessResponse(res, user);
 
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, `Unable to find user with the email: {$email}`);
-    }
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.BAD_REQUEST,  
+                                        UserController.ERROR_UNABLE_TO_FIND_USER_EMAIL(email));
+      }
   };
 
   public getById = async (req: Request, res: Response): Promise<void> => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, "Invalid ID format");
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.BAD_REQUEST, 
+                                        UserController.ERROR_INVALID_USER_ID_FORMAT);
       return;
     }
 
@@ -65,14 +89,18 @@ export class UserController {
       const user = await this.userRepository.findOne({ where: { userId: id },  
                                                       relations: ["role"] });
       if (!user) {
-        ResponseHandler.sendErrorResponse(res, StatusCodes.NO_CONTENT, `User not found with ID: ${id}`);
+        ResponseHandler.sendErrorResponse(res, 
+                                          StatusCodes.NO_CONTENT, 
+                                          UserController.ERROR_USER_NOT_FOUND_WITH_ID(id));
         return;
       }
 
-      ResponseHandler.sendSuccessResponse(res,user);
-    
+      ResponseHandler.sendSuccessResponse(res, user);
+     
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, `Error fetching user: {$error.message}`);
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.BAD_REQUEST, 
+                                        UserController.ERROR_RETRIEVING_USER(error.message));
     }
   };
 
@@ -89,17 +117,20 @@ export class UserController {
       }
 
       user = await this.userRepository.save(user); 
-      
-      ResponseHandler.sendSuccessResponse(res, instanceToPlain(user), StatusCodes.CREATED);
+      ResponseHandler.sendSuccessResponse(res, 
+                                          instanceToPlain(user), 
+                                          StatusCodes.CREATED);
 
     } catch (error: any) { 
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.BAD_REQUEST, 
+                                        error.message);
     }
   };
 
   public delete = async (req: Request, res: Response): Promise<void> => {
     const id = req.params.id;
-    console.log(id);
+
     try {
       if (!id) {
         throw new Error("No ID provided");
@@ -111,10 +142,14 @@ export class UserController {
         throw new Error("User with the provided ID not found");
       }
 
-      ResponseHandler.sendSuccessResponse(res,"User deleted", StatusCodes.OK);
+      ResponseHandler.sendSuccessResponse(res,
+                                          "User deleted", 
+                                          StatusCodes.OK);
   
     } catch (error: any) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.NOT_FOUND, error.message);
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.NOT_FOUND, 
+                                        error.message);
     }
   };
 
@@ -122,29 +157,33 @@ export class UserController {
       const id = req.body.id;
      try{
       if (!id) {
-        throw new Error("id not found");
+        throw new Error(UserController.ERROR_NO_USER_ID_PROVIDED);
       }
       
-      let user = await this.userRepository.findOneBy({ userId: id });
+      let user = await this.userRepository.findOneBy({ userId : id });
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error(UserController.ERROR_USER_NOT_FOUND);
       }
 
       user.email = req.body.email;
       user.role = req.body.roleId;
 
       const errors = await validate(user);
-      if (errors.length > 0) {
+      if (errors.length > 0) { 
          throw new Error (errors.map(err => Object.values(err.constraints || {})).join(", "));
       }
 
       user = await this.userRepository.save(user);
 
-      ResponseHandler.sendSuccessResponse(res, user, StatusCodes.OK);
+      ResponseHandler.sendSuccessResponse(res, 
+                                          user, 
+                                          StatusCodes.OK);
 
     } catch (error: any) {
-      ResponseHandler.sendErrorResponse(res, StatusCodes.BAD_REQUEST, error.message);
+      ResponseHandler.sendErrorResponse(res, 
+                                        StatusCodes.BAD_REQUEST, 
+                                        error.message);
     }
   };
 }

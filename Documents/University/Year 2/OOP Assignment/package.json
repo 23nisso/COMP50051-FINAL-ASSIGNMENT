@@ -1,10 +1,9 @@
 {
-  "name": "annualleave_assignment_anis",
+  "name": "oop-assignment",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts",
-    "dev": "nodemon index.ts"
+    "start": "ts-node index.ts"
   },
   "keywords": [],
   "author": "",

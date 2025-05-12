@@ -11,6 +11,7 @@ import { mock } from "jest-mock-extended";
 const VALIDATOR_CONSTRAINT_NAME_IS_REQUIRED = "Name is required";
 const VALIDATOR_CONSTRAINT_EMPTY_OR_WHITESPACE = "Name cannot be empty or whitespace";
 const VALIDATOR_CONSTRAINT_MAX_LENGTH_EXCEEDED = "Name must be 30 characters or less";
+
 const INVALID_ROLE_ID_NUMBER = 99;
 const INVALID_ROLE_ID_TYPE = "abc";
 const BLANK_ROLE_NAME = "";

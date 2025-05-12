@@ -1,10 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm"
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert } from "typeorm"
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { Role } from "./Role";
 import { Exclude } from 'class-transformer';
+import { PasswordHandler } from '../helper/PasswordHandler';
 
 @Entity({ name: "user" })
 export class User {
+
   @PrimaryGeneratedColumn()
   userId: number;
 
@@ -32,5 +34,16 @@ export class User {
 
   @ManyToOne(() => Role, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "roleId" })
-  role: Role;
+  roleId: Role;
+
+  @BeforeInsert()
+  hashPassword() {
+    if (!this.password) {
+      throw new Error("Password must be provided before inserting a user.");
+      }
+
+      const { hashedPassword, salt } = PasswordHandler.hashPassword(this.password);
+      this.password = hashedPassword;
+      this.salt = salt;
+    }
 }

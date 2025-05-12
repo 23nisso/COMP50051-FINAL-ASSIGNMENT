@@ -3,11 +3,13 @@ import { AppDataSource } from '../data-source';
 import { User } from '../entity/User';
 import { Repository } from "typeorm";
 import { ResponseHandler } from '../helper/ResponseHandler';
+import { instanceToPlain } from "class-transformer";
 import { StatusCodes } from 'http-status-codes';
 import { validate } from "class-validator";
-import { instanceToPlain } from 'class-transformer';
+import { IEntityController} from './IEntityController';
+import { AppError } from "../helper/AppError";
 
-export class UserController {
+export class UserController implements IEntityController{
   public static readonly ERROR_NO_USER_ID_PROVIDED = "No ID provided";
   public static readonly ERROR_INVALID_USER_ID_FORMAT = "Invalid ID format";
   public static readonly ERROR_USER_NOT_FOUND = "User not found";
@@ -107,9 +109,11 @@ export class UserController {
   public create = async (req: Request, res: Response): Promise<void> => {
     try {
       let user = new User();
-      user.password = req.body.password; 
+      user.firstName = req.body.firstName;
+      user.surname = req.body.surname;
       user.email = req.body.email;
-      user.role = req.body.roleId;
+      user.password = req.body.password;
+      user.roleId = req.body.roleId;
 
       const errors = await validate(user);
       if (errors.length > 0) { 
@@ -167,7 +171,7 @@ export class UserController {
       }
 
       user.email = req.body.email;
-      user.role = req.body.roleId;
+      user.roleId = req.body.roleId;
 
       const errors = await validate(user);
       if (errors.length > 0) { 

@@ -1,9 +1,9 @@
-import { UserController } from '../controllers/UserController';
-import { User } from '../entity/User';
-import { Role } from '../entity/Role';
+import { UserController } from '../../controller/controllers/UserController';
+import { User } from '../../entities/User';
+import { Role } from '../../entities/Role';
 import { Repository } from 'typeorm';
 import { StatusCodes } from 'http-status-codes';
-import { ResponseHandler } from '../helper/ResponseHandler';
+import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
 import { Request, Response } from 'express';
 import * as classValidator from "class-validator";
 import * as classTransformer from "class-transformer";
@@ -33,7 +33,7 @@ describe('UserController', () => {
             user.userId = 1;
             user.password = 'a'.repeat(10);
             user.email = 'manager@email.com';
-            user.roleId = role;
+            user.role = role;
             return user;
     }
 
@@ -46,7 +46,7 @@ describe('UserController', () => {
         user.userId = 1;
         user.password = 'b'.repeat(10);
         user.email = 'staff@email.com';
-        user.roleId = role;
+        user.role = role;
         return user;
     }
 
@@ -87,7 +87,7 @@ describe('UserController', () => {
     it('create will return BAD_REQUEST if no user password was provided', async () => {
         const validManagerDetails = getValidManagerData();
         const req = mockRequest({}, { email: validManagerDetails.email, 
-                                        roleId: validManagerDetails.roleId.roleId }); 
+                                        roleId: validManagerDetails.role.roleId }); 
         const res = mockResponse();
     
         const EXPECTED_ERROR_MESSAGE = VALIDATOR_CONSTRAINT_PASSWORD_AT_LEAST_10_CHARS;
@@ -111,7 +111,7 @@ describe('UserController', () => {
 
         const req = mockRequest({}, { password: validManagerDetails.password, 
                                         email: validManagerDetails.email, 
-                                        roleId: validManagerDetails.roleId.roleId }); 
+                                        roleId: validManagerDetails.role.roleId }); 
         const res = mockResponse();
 
         mockUserRepository.save.mockResolvedValue(validManagerDetails);
@@ -119,8 +119,8 @@ describe('UserController', () => {
         jest.spyOn(classTransformer, "instanceToPlain").mockReturnValue({
             id: validManagerDetails.userId,
             email: validManagerDetails.email,
-            role: { id: validManagerDetails.roleId.roleId, 
-                    name: validManagerDetails.roleId.name },
+            role: { id: validManagerDetails.role.roleId, 
+                    name: validManagerDetails.role.name },
         } as any);
 
         jest.spyOn(classValidator, 'validate').mockResolvedValue([]);
@@ -129,13 +129,13 @@ describe('UserController', () => {
 
         expect(mockUserRepository.save).toHaveBeenCalledWith(expect.objectContaining({ password: validManagerDetails.password, 
                                                                                         email: validManagerDetails.email, 
-                                                                                        role: validManagerDetails.roleId.roleId }));
+                                                                                        role: validManagerDetails.role.roleId }));
         
                                                                                         
         expect(ResponseHandler.sendSuccessResponse).toHaveBeenCalledWith(res,                                                     
                                                                         {   id: validManagerDetails.userId, 
                                                                             email: validManagerDetails.email, 
-                                                                            role: validManagerDetails.roleId },
+                                                                            role: validManagerDetails.role.roleId },
                                                                             StatusCodes.CREATED);
     });
 

@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express, { Router } from 'express';
-import { RoleRouter } from './RoleRouter';
-import { RoleController } from '../controllers/RoleController';
+import { RoleRouter } from '../../routes/RoleRouter';
+import { RoleController } from '../../controller/controllers/RoleController';
 import { StatusCodes } from 'http-status-codes';
 
 const mockRoleController = {

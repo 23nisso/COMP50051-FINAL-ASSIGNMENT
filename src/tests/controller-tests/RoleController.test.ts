@@ -1,8 +1,8 @@
-import { RoleController } from '../controllers/RoleController';
-import { Role } from '../entity/Role';
+import { RoleController } from '../../controller/controllers/RoleController';
+import { Role } from '../../entities/Role';
 import { Repository } from 'typeorm';
 import { StatusCodes } from 'http-status-codes';
-import { ResponseHandler } from '../helper/ResponseHandler';
+import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
 import { Request, Response } from 'express';
 import { DeleteResult } from 'typeorm';
 import * as classValidator from "class-validator";

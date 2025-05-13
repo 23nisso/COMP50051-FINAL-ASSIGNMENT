@@ -1,10 +1,10 @@
 import express from "express";
 import { DataSource } from "typeorm";
 import morgan, {StreamOptions} from "morgan";
-import { Logger } from "./helper/Logger";
-import { MiddlewareFactory } from "./helper/MiddlewareFactory";
+import { Logger } from "./helpers/Logger";
+import { MiddlewareFactory } from "./middlewares/MiddlewareFactory";
 import { IRouter} from "./routes/IRouter";
-import { ErrorHandler } from "./helper/ErrorHandler";
+import { ErrorHandler } from "./helpers/handlers/ErrorHandler";
 
 export class Server {
     public static readonly ERROR_TOKEN_IS_INVALID = "Not authorised - Token is invalid";

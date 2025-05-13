@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeIn
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { Role } from "./Role";
 import { Exclude } from 'class-transformer';
-import { PasswordHandler } from '../helper/PasswordHandler';
+import { PasswordHandler } from '../helpers/handlers/PasswordHandler';
 
 @Entity({ name: "user" })
 export class User {
@@ -34,7 +34,7 @@ export class User {
 
   @ManyToOne(() => Role, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "roleId" })
-  roleId: Role;
+  role: Role;
 
   @BeforeInsert()
   hashPassword() {

@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { Logger } from './Logger';
+import { Logger } from '../Logger';
 
 export class ResponseHandler {
     public static sendErrorResponse(

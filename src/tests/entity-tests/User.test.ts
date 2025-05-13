@@ -1,5 +1,5 @@
-import { User } from "./User";
-import { Role } from "./Role";
+import { User } from "../../entities/User";
+import { Role } from "../../entities/Role";
 import * as classTransformer from "class-transformer";
 import { instanceToPlain } from "class-transformer";
 import { validate } from "class-validator";
@@ -22,7 +22,7 @@ describe("User Entity tests", () => {
         user.userId = 1;
         user.email = "test@email.com"; 
         user.password = 'a'.repeat(10);
-        user.roleId = role;
+        user.role = role;
     });
 
 it("A password must be a string", async () => {
@@ -50,7 +50,7 @@ it("A poorly formed email is considered invalid", async () => {
     });
 
 it("A user with no role is considered invalid", async () => {
-    user.roleId = null;
+    user.role = null;
 
     const errors = await validate(user);
     expect(errors.length).toBe(1);
@@ -67,8 +67,8 @@ it("A user with valid details will not return their password after submitting va
     jest.spyOn(classTransformer, "instanceToPlain").mockReturnValue({
         id: user.userId,
         email: user.email,
-        role: { id: user.roleId.roleId, 
-                name: user.roleId.name },
+        role: { id: user.role.roleId, 
+                name: user.role.name },
     } as any);
             
     const plainUser = instanceToPlain(user);
@@ -113,7 +113,7 @@ it("A new user with a duplicate email address cannot be inserted/saved", async (
     const userWithDuplicateEmailAddress = new User();
     userWithDuplicateEmailAddress.email = user.email; 
     userWithDuplicateEmailAddress.password = 'a'.repeat(10);
-    userWithDuplicateEmailAddress.roleId = role;
+    userWithDuplicateEmailAddress.role = role;
 
     await expect(mockUserRepository.save(userWithDuplicateEmailAddress)).rejects.toThrow(QueryFailedError);
     });

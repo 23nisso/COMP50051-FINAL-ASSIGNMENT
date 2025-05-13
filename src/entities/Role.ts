@@ -3,6 +3,7 @@ import { IsNotEmpty, Matches, MaxLength } from 'class-validator';
 
 @Entity({ name: "role" })
 export class Role {
+    
     @PrimaryGeneratedColumn()
     roleId: number;
 

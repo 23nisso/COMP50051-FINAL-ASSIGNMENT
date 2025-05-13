@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
-import { AppDataSource } from '../data-source'; 
-import { User } from '../entity/User';
+import { AppDataSource } from '../../data-source'; 
+import { User } from '../../entities/User';
 import { Repository } from "typeorm";
-import { ResponseHandler } from '../helper/ResponseHandler';
+import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
 import { instanceToPlain } from "class-transformer";
 import { StatusCodes } from 'http-status-codes';
 import { validate } from "class-validator";
-import { IEntityController} from './IEntityController';
-import { AppError } from "../helper/AppError";
+import { IEntityController} from '../interfaces/IEntityController';
+import { AppError } from "../../helpers/AppError";
 
 export class UserController implements IEntityController{
   public static readonly ERROR_NO_USER_ID_PROVIDED = "No ID provided";
@@ -113,7 +113,7 @@ export class UserController implements IEntityController{
       user.surname = req.body.surname;
       user.email = req.body.email;
       user.password = req.body.password;
-      user.roleId = req.body.roleId;
+      user.role = req.body.roleId;
 
       const errors = await validate(user);
       if (errors.length > 0) { 
@@ -171,7 +171,7 @@ export class UserController implements IEntityController{
       }
 
       user.email = req.body.email;
-      user.roleId = req.body.roleId;
+      user.role = req.body.roleId;
 
       const errors = await validate(user);
       if (errors.length > 0) { 

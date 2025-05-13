@@ -1,5 +1,5 @@
 import express from "express";
-import { Role } from "../entity/Role";
+import { Role } from "../entities/Role";
 import { Request } from "express";
 
 export interface IAuthenticatedJWTRequest extends Request {

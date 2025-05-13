@@ -10,8 +10,9 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "sourceMap": true,
+      "types": ["jest"],
       "esModuleInterop": true,
    },
-"include": ["src/**/*"],
+"include": ["src/**/*", "src/tests/controller-tests/RoleController.test.ts", "src/tests/controller-tests/UserController.test.ts", "src/tests/entity-tests/Role.test.ts", "../interfaces", "../routers"],
    "exclude": ["node_modules"]
 }

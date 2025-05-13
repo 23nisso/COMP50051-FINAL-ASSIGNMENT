@@ -1,5 +1,5 @@
 import { validate } from 'class-validator';
-import { Role } from './Role';
+import { Role } from '../../entities/Role';
 
 describe('Role entity tests', () => { 
     it('A blank name is considered invalid', async () => {

@@ -1,5 +1,5 @@
 import "dotenv/config"; 
-import { PasswordHandler } from "./PasswordHandler"; 
+import { PasswordHandler } from "./handlers/PasswordHandler"; 
 
 const TEST_PASSWORD = "AnisLayaida2004";
 

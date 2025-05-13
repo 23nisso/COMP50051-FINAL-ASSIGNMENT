@@ -1,12 +1,12 @@
-import { AppDataSource } from '../data-source'; 
-import { User } from '../entity/User';
+import { AppDataSource } from '../../data-source'; 
+import { User } from '../../entities/User';
 import { Repository } from "typeorm";
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { PasswordHandler } from '../helper/PasswordHandler';
-import { UserDTOToken } from './UserDTOToken'
+import { PasswordHandler } from '../../helpers/handlers/PasswordHandler';
+import { UserDTOToken } from '../data-transfer-objects/UserDTOToken'
 import jwt from 'jsonwebtoken';
-import { AppError } from "../helper/AppError";
+import { AppError } from "../../helpers/AppError";
 import bcrypt from "bcryptjs";
 
 export class LoginController {
@@ -36,7 +36,7 @@ export class LoginController {
     const token = jwt.sign(
       {
         userId: user.userId,
-        role: user.roleId.name,
+        roleId: user.role.name,
       },
       process.env.JWT_SECRET || "mysecret",
       { expiresIn: "1h" }

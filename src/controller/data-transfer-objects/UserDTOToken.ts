@@ -1,4 +1,4 @@
-import { Role } from "../entity/Role"; 
+import { Role } from "../../entities/Role"; 
 
 export class UserDTOToken{    
   constructor(

@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import { AppDataSource } from '../data-source';
-import { Role } from '../entity/Role';
+import { AppDataSource } from '../../data-source';
+import { Role } from '../../entities/Role';
 import { Repository } from "typeorm";
 import { StatusCodes } from 'http-status-codes';
-import { ResponseHandler } from "../helper/ResponseHandler";
+import { ResponseHandler } from "../../helpers/handlers/ResponseHandler";
 import { validate } from "class-validator";
-import { IEntityController } from './IEntityController';
-import { AppError } from "../helper/AppError";
+import { IEntityController } from '../interfaces/IEntityController';
+import { AppError } from "../../helpers/AppError";
 
 export class RoleController implements IEntityController{
     public static readonly ERROR_NO_ID_PROVIDED = "No ID provided";

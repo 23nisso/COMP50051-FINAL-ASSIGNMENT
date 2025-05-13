@@ -1,7 +1,7 @@
 import { RequestHandler, Request, Response, NextFunction } from "express";
 import { IAuthenticatedJWTRequest } from "../types/IAuthenticatedJWTRequest";
-import { Logger } from "../helper/Logger";
-import { ResponseHandler } from "../helper/ResponseHandler";
+import { Logger } from "../helpers/Logger";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 import { StatusCodes } from "http-status-codes";
 import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";

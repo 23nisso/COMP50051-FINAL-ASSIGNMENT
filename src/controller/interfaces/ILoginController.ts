@@ -1,12 +1,12 @@
-import { AppDataSource } from '../data-source'; 
-import { User } from '../entity/User';
+import { AppDataSource } from '../../data-source'; 
+import { User } from '../../entities/User';
 import { Repository } from "typeorm";
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { PasswordHandler } from '../helper/PasswordHandler';
-import { UserDTOToken } from './UserDTOToken'
+import { PasswordHandler } from '../../helpers/handlers/PasswordHandler';
+import { UserDTOToken } from '../data-transfer-objects/UserDTOToken'
 import jwt from 'jsonwebtoken';
-import { AppError } from "../helper/AppError";
+import { AppError } from "../../helpers/AppError";
 
 export interface ILoginController {
     login(req: Request, res: Response): Promise<void>;
@@ -49,7 +49,7 @@ export class LoginController implements ILoginController {
         if (!PasswordHandler.verifyPassword(password, user.password, user.salt)){
             throw new AppError(LoginController.ERROR_PASSWORD_INCORRECT);
         }
-        let token = new UserDTOToken(user.email, user.roleId);
+        let token = new UserDTOToken(user.email, user.role);
 
         res.status(StatusCodes.ACCEPTED).send(jwt.sign({ token }, 
                                                 process.env.JWT_SECRET, 

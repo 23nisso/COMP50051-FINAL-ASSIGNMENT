@@ -5,9 +5,9 @@ import { AppDataSource } from "./data-source";
 import { LoginRouter } from "./routes/LoginRouter";
 import { RoleRouter } from "./routes/RoleRouter";
 import { UserRouter } from "./routes/UserRouter";
-import { RoleController } from "./controllers/RoleController";
-import { UserController } from "./controllers/UserController";
-import { LoginController } from "./controllers/LoginController";
+import { RoleController } from "./controller/controllers/RoleController";
+import { UserController } from "./controller/controllers/UserController";
+import { LoginController } from "./controller/controllers/LoginController";
 
 const DEFAULT_PORT = 7063
 const port = process.env.SERVER_PORT || DEFAULT_PORT;

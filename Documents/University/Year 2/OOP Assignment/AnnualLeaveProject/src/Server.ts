@@ -50,7 +50,7 @@ export class Server {
     
             middlewares.push(MiddlewareFactory.logRouteAccess(route.routeName));
 
-            this.app.use(route.basePath, ...middlewares, route.getRouter());
+            this.app.use("/api", route);
         }
     }
     

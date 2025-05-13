@@ -33,7 +33,7 @@ describe('UserController', () => {
             user.userId = 1;
             user.password = 'a'.repeat(10);
             user.email = 'manager@email.com';
-            user.role = role;
+            user.roleId = role;
             return user;
     }
 
@@ -46,7 +46,7 @@ describe('UserController', () => {
         user.userId = 1;
         user.password = 'b'.repeat(10);
         user.email = 'staff@email.com';
-        user.role = role;
+        user.roleId = role;
         return user;
     }
 
@@ -87,7 +87,7 @@ describe('UserController', () => {
     it('create will return BAD_REQUEST if no user password was provided', async () => {
         const validManagerDetails = getValidManagerData();
         const req = mockRequest({}, { email: validManagerDetails.email, 
-                                        roleId: validManagerDetails.role.roleId }); 
+                                        roleId: validManagerDetails.roleId.roleId }); 
         const res = mockResponse();
     
         const EXPECTED_ERROR_MESSAGE = VALIDATOR_CONSTRAINT_PASSWORD_AT_LEAST_10_CHARS;
@@ -111,7 +111,7 @@ describe('UserController', () => {
 
         const req = mockRequest({}, { password: validManagerDetails.password, 
                                         email: validManagerDetails.email, 
-                                        roleId: validManagerDetails.role.roleId }); 
+                                        roleId: validManagerDetails.roleId.roleId }); 
         const res = mockResponse();
 
         mockUserRepository.save.mockResolvedValue(validManagerDetails);
@@ -119,8 +119,8 @@ describe('UserController', () => {
         jest.spyOn(classTransformer, "instanceToPlain").mockReturnValue({
             id: validManagerDetails.userId,
             email: validManagerDetails.email,
-            role: { id: validManagerDetails.role.roleId, 
-                    name: validManagerDetails.role.name },
+            role: { id: validManagerDetails.roleId.roleId, 
+                    name: validManagerDetails.roleId.name },
         } as any);
 
         jest.spyOn(classValidator, 'validate').mockResolvedValue([]);
@@ -129,13 +129,13 @@ describe('UserController', () => {
 
         expect(mockUserRepository.save).toHaveBeenCalledWith(expect.objectContaining({ password: validManagerDetails.password, 
                                                                                         email: validManagerDetails.email, 
-                                                                                        role: validManagerDetails.role.roleId }));
+                                                                                        role: validManagerDetails.roleId.roleId }));
         
                                                                                         
         expect(ResponseHandler.sendSuccessResponse).toHaveBeenCalledWith(res,                                                     
                                                                         {   id: validManagerDetails.userId, 
                                                                             email: validManagerDetails.email, 
-                                                                            role: validManagerDetails.role },
+                                                                            role: validManagerDetails.roleId },
                                                                             StatusCodes.CREATED);
     });
 

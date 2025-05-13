@@ -1,5 +1,5 @@
 import { Server } from "./Server";
-import { Router } from "express";
+import express, { Router } from "express";
 import { DataSource } from "typeorm";
 import { AppDataSource } from "./data-source"; 
 import { LoginRouter } from "./routes/LoginRouter";
@@ -17,8 +17,10 @@ if (!process.env.SERVER_PORT) {
 
 const appDataSource: DataSource = AppDataSource;
 
+const app = express();
+
 const routers = [
-    new LoginRouter(Router(), new LoginController()),
+    app.use("/api", LoginRouter(new LoginController())),
     new RoleRouter(Router(), new RoleController()),
     new UserRouter(Router(), new UserController())
 ];

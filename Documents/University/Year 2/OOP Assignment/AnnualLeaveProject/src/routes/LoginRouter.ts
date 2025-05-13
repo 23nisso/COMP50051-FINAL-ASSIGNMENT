@@ -1,22 +1,8 @@
-import { Router } from "express";  
-import { ILoginController } from "../controllers/ILoginController";
-import { IRouter } from "./IRouter";
+import { Router } from "express";
+import { LoginController } from "../controllers/LoginController";
 
-export class LoginRouter implements IRouter{
-    public routeName = "login";
-    public basePath = "/api/login";
-    public authenticate = false;
-
-    constructor(private router: Router, 
-        private loginController: ILoginController) {
-        this.addRoutes(); 
-    }
-
-    public getRouter(): Router {
-        return this.router;
-    } 
-
-    private addRoutes() {  
-        this.router.post("/", this.loginController.login); 
-    }
-}
+export const LoginRouter = (controller: LoginController): Router => {
+  const router = Router();
+  router.post("/login", (req, res) => controller.login(req, res));
+  return router;
+};

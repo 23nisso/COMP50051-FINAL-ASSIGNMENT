@@ -7,53 +7,41 @@ import { PasswordHandler } from '../helper/PasswordHandler';
 import { UserDTOToken } from './UserDTOToken'
 import jwt from 'jsonwebtoken';
 import { AppError } from "../helper/AppError";
+import bcrypt from "bcryptjs";
 
-export interface ILoginController {
-    login(req: Request, res: Response): Promise<void>;
-}
+export class LoginController {
+  private userRepository = AppDataSource.getRepository(User);
 
-export class LoginController implements ILoginController {
-    public static readonly ERROR_NO_EMAIL_PROVIDED = "No email provided";
-    public static readonly ERROR_NO_PASSWORD_PROVIDED = "No password provided";
-    public static readonly ERROR_USER_NOT_FOUND = "User not found";
-    public static readonly ERROR_PASSWORD_INCORRECT = "Password incorrect";
+  async login(req: Request, res: Response) {
+    const { email, password } = req.body;
 
-    private userRepository: Repository<User>;
-    
-    constructor() {
-            this.userRepository = AppDataSource.getRepository(User);
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password required" });
     }
-    
-    public login = async (req: Request, res: Response): Promise<void> => {
-        let email = req.body.email;
-        if (!email || email.trim().length === 0) {
-            throw new AppError(LoginController.ERROR_NO_EMAIL_PROVIDED);
-        }
 
-        let password = req.body.password;
-        if (!password || password.trim().length === 0) {
-            throw new AppError(LoginController.ERROR_NO_PASSWORD_PROVIDED);
-        }
+    const user = await this.userRepository.findOne({
+      where: { email },
+      relations: ["role"],
+    });
 
-        const user = await this.userRepository.createQueryBuilder("user")
-                                            .addSelect(["user.password", 
-                                                        "user.salt"])               
-                                            .leftJoinAndSelect("user.roleId", "role") 
-                                            .where("user.email = :email", { email: email })
-                                            .getOne();
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
-        if (!user) {
-            throw new AppError(LoginController.ERROR_USER_NOT_FOUND);
-        }
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
-        if (!PasswordHandler.verifyPassword(password, user.password, user.salt)){
-            throw new AppError(LoginController.ERROR_PASSWORD_INCORRECT);
-        }
-        let token = new UserDTOToken(user.email, user.roleId);
+    const token = jwt.sign(
+      {
+        userId: user.userId,
+        role: user.roleId.name,
+      },
+      process.env.JWT_SECRET || "mysecret",
+      { expiresIn: "1h" }
+    );
 
-        res.status(StatusCodes.ACCEPTED).send(jwt.sign({ token }, 
-                                                process.env.JWT_SECRET, 
-                                                { expiresIn: '3h' }));
-    
-    };
+    return res.status(200).json({ token });
+  }
 }

@@ -1,8 +1,24 @@
 import { Router } from "express";
 import { LoginController } from "../controller/controllers/LoginController";
+import { IRouter } from "./IRouter";
 
-export const LoginRouter = (controller: LoginController): Router => {
-  const router = Router();
-  router.post("/login", (req, res) => controller.login(req, res));
-  return router;
-};
+export class LoginRouter implements IRouter {
+  public readonly routeName = "login";
+  public readonly basePath = "/api/logins";
+  public readonly authenticate = false;
+
+  constructor(
+    private readonly router: Router,
+    private readonly controller: LoginController
+  ) {
+    this.setupRoutes();
+  }
+
+  private setupRoutes() {
+    this.router.post("/login", this.controller.login.bind(this.controller));
+  }
+
+  public getRouter(): Router {
+    return this.router;
+  }
+}

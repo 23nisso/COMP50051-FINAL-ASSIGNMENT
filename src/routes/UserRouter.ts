@@ -1,9 +1,8 @@
 import { Router } from "express"; 
-import { IRouter } from "./IRouter";
 import { IEntityController } from "../controller/interfaces/IEntityController";
 import { IGetByEmail } from "../controller/interfaces/IGetByEmail";
 
-export class UserRouter implements IRouter{
+export class UserRouter {
   public routeName = "users";
   public basePath = "/api/users";
   public authenticate = true;

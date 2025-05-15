@@ -17,6 +17,6 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     synchronize: process.env.NODE_ENV !== "production",
-    logging: true,
+    logging: false,
     entities: [Role, User, LeaveRequest, UserManagement, LeaveType]
 });

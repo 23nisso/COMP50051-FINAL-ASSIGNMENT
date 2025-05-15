@@ -1,8 +1,7 @@
 import { Router } from "express";  
-import { IRouter } from "./IRouter";
 import { IEntityController } from "../controller/interfaces/IEntityController";
 
-export class RoleRouter implements IRouter{
+export class RoleRouter {
     public routeName = "roles";
     public basePath = "/api/roles";
     public authenticate = true;

@@ -5,6 +5,7 @@ import { Logger } from "./helpers/Logger";
 import { MiddlewareFactory } from "./middlewares/MiddlewareFactory";
 import { IRouter} from "./routes/IRouter";
 import { ErrorHandler } from "./helpers/handlers/ErrorHandler";
+import { Router } from "express"; 
 
 export class Server {
     public static readonly ERROR_TOKEN_IS_INVALID = "Not authorised - Token is invalid";
@@ -41,7 +42,7 @@ export class Server {
             if (route.authenticate) {
                 middlewares.push(MiddlewareFactory.authenticateToken);
             }
-
+    
             if (route.basePath === "/api/login") {
                 middlewares.push(MiddlewareFactory.loginLimiter());
             } else {
@@ -50,8 +51,7 @@ export class Server {
     
             middlewares.push(MiddlewareFactory.logRouteAccess(route.routeName));
 
-            this.app.use("/api", route);
-        }
+            this.app.use(route.basePath, ...middlewares, route.getRouter());}
     }
     
     private initialiseErrorHandling() { 

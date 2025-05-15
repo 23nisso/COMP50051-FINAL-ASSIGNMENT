@@ -3,26 +3,15 @@ import { StatusCodes } from 'http-status-codes';
 import { Logger } from '../Logger';
 
 export class ResponseHandler {
-    public static sendErrorResponse(
-        res: Response, 
-        statusCode: number, 
-        message: string = "Unexpected error" 
-
-    ): Response {
-        const timestamp = new Date().toISOString();
-        Logger.error(`[Error]: ${message}`, `${timestamp}`);
-
-        const errorResponse = {
-            error: {
-                message: message,
-                status: statusCode,
-                timestamp: timestamp,
-
-            }
-        };
-        return res.status(statusCode).send(errorResponse);
-    }
-
+    public static sendErrorResponse(res: Response, statusCode: number, message?: string) {
+        res.status(statusCode || 500).json({
+        error: {
+            message: message || "Internal Server Error",
+            status: statusCode || 500,
+            timestamp: new Date().toISOString()
+        }
+    });
+}
     public static sendSuccessResponse(
         res: Response, 
         data: any = {},

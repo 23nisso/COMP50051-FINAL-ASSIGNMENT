@@ -6,8 +6,8 @@ export class LeaveType {
   @PrimaryGeneratedColumn()
   leaveTypeId: number;
 
-  @Column()
-  name: string;
+  @Column({ type: 'varchar', length: 100, unique: true })
+  leaveType: string;
 
   @Column({ type: 'text', nullable: true })
   description: string | null;

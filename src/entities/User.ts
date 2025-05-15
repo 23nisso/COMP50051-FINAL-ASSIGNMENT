@@ -47,3 +47,4 @@ export class User {
       this.salt = salt;
     }
 }
+

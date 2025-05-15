@@ -1,17 +1,20 @@
 import { scryptSync, randomBytes, timingSafeEqual} from "crypto";
+import * as dotenv from "dotenv";
+
+dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 
 export class PasswordHandler {
     private static readonly SALT_LENGTH_IN_BYTES = 16;
     private static readonly KEY_LENGTH_IN_BYTES = 64;
-    private static readonly PEPPER = process.env.PASSWORD_PEPPER;
+    private static readonly PEPPER = process.env.PEPPER;
 
     static hashPassword(password: string){
         const salt = randomBytes(this.SALT_LENGTH_IN_BYTES).toString("hex");
 
-        const hashedPassword = scryptSync(this.PEPPER + password, 
-                                          salt, 
-                                          this.KEY_LENGTH_IN_BYTES)
-                                          .toString("hex");
+        const hashedPassword = scryptSync(this.PEPPER + password,
+                                         salt, 
+                                         this.KEY_LENGTH_IN_BYTES)
+                                         .toString("hex");
         return { hashedPassword, salt };
     }
 
@@ -28,3 +31,5 @@ export class PasswordHandler {
                                 Buffer.from(hashToCompare, "hex"));
     }
 }
+
+

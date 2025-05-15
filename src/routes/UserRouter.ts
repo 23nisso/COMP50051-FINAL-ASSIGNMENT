@@ -25,3 +25,4 @@ export class UserRouter {
     this.router.patch('/', this.userController.update);
   }
 }
+

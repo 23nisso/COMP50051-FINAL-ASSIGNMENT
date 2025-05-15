@@ -13,7 +13,7 @@ export class LeaveRequestController {
 
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const data = await this.repo.find({ relations: ['user', 'leaveType'] });
+      const data = await this.repo.find({ relations: ['user', 'leaveTypeId'] });
       ResponseHandler.sendSuccessResponse(res, data);
     } catch (error) {
       ResponseHandler.sendErrorResponse(res, 500, 'Failed to retrieve leave requests');

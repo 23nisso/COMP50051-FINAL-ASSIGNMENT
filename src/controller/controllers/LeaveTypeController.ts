@@ -22,8 +22,8 @@ export class LeaveTypeController {
 
   async create(req: Request, res: Response): Promise<void> {
     try {
-      const leaveType = this.repo.create(req.body);
-      const result = await this.repo.save(leaveType);
+      const leaveTypeId = this.repo.create(req.body);
+      const result = await this.repo.save(leaveTypeId);
       ResponseHandler.sendSuccessResponse(res, result, 201);
     } catch (error) {
       ResponseHandler.sendErrorResponse(res, 400, 'Failed to create leave type');

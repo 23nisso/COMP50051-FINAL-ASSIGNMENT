@@ -9,12 +9,12 @@ export class LeaveRequest {
   leaveRequestId: number;
 
   @ManyToOne(() => User, user => user)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @JoinColumn()
+  userId: number;
 
   @ManyToOne(() => LeaveType)
-  @JoinColumn({ name: 'leaveType' })
-  leaveType: LeaveType;
+  @JoinColumn()
+  leaveTypeId: number;
 
   @Column({ type: 'date' })
   startDate: Date;

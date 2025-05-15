@@ -47,7 +47,7 @@ export class Server {
                 middlewares.push(MiddlewareFactory.loginLimiter());
             } else {
                 middlewares.push(MiddlewareFactory.jwtRateLimitMiddleware(route.routeName));
-            }
+           }
     
             middlewares.push(MiddlewareFactory.logRouteAccess(route.routeName));
 

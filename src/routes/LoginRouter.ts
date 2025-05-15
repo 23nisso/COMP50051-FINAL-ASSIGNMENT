@@ -4,7 +4,7 @@ import { IRouter } from "./IRouter";
 
 export class LoginRouter implements IRouter {
   public readonly routeName = "login";
-  public readonly basePath = "/api/logins";
+  public readonly basePath = "/api/login";
   public readonly authenticate = false;
 
   constructor(
@@ -15,7 +15,7 @@ export class LoginRouter implements IRouter {
   }
 
   private setupRoutes() {
-    this.router.post("/login", this.controller.login.bind(this.controller));
+    this.router.post("/", this.controller.login.bind(this.controller));
   }
 
   public getRouter(): Router {

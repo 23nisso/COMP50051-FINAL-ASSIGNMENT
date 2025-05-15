@@ -5,7 +5,7 @@ import { IRouter } from './IRouter';
 export class LeaveTypeRouter implements IRouter {
   routeName = 'leave_type';
   basePath = '/api/leavetypes';
-  authenticate = true;
+  authenticate = false;
 
   constructor(
     private readonly router: Router,

@@ -16,7 +16,7 @@ export class LeaveRequestController {
       const data = await this.repo.find({ relations: ['user', 'leaveTypeId'] });
       ResponseHandler.sendSuccessResponse(res, data);
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 500, 'Failed to retrieve leave requests');
+      ResponseHandler.sendErrorResponse(res, 500, 'Failed to retrieve leave requests. Ensure the database connection is established and the query is valid.');
     }
   }
 
@@ -26,7 +26,7 @@ export class LeaveRequestController {
       const result = await this.repo.save(newRequest);
       ResponseHandler.sendSuccessResponse(res, result, 201);
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 400, 'Failed to create leave request');
+      ResponseHandler.sendErrorResponse(res, 400, 'Failed to create leave request. Ensure all required fields are provided and valid.');
     }
   }
 }

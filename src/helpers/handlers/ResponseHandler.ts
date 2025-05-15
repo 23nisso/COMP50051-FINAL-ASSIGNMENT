@@ -6,7 +6,7 @@ export class ResponseHandler {
     public static sendErrorResponse(res: Response, statusCode: number, message?: string) {
         res.status(statusCode || 500).json({
         error: {
-            message: message || "Internal Server Error",
+            message: message || "Internal Server Error, please try again later",
             status: statusCode || 500,
             timestamp: new Date().toISOString()
         }

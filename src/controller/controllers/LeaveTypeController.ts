@@ -16,7 +16,7 @@ export class LeaveTypeController {
       const data = await this.repo.find();
       ResponseHandler.sendSuccessResponse(res, data);
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 500, 'Failed to fetch leave types');
+      ResponseHandler.sendErrorResponse(res, 500, 'Failed to fetch leave types. Please try again later.');
     }
   }
 
@@ -26,7 +26,7 @@ export class LeaveTypeController {
       const result = await this.repo.save(leaveTypeId);
       ResponseHandler.sendSuccessResponse(res, result, 201);
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 400, 'Failed to create leave type');
+      ResponseHandler.sendErrorResponse(res, 400, 'Failed to create leave type. Please check your input.');
     }
   }
 }

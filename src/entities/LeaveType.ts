@@ -19,6 +19,6 @@ export class LeaveType {
   @Column({ default: 5 })
   maxRollOverDays: number;
 
-  @OneToMany(() => LeaveRequest, (request) => request.leaveType)
+  @OneToMany(() => LeaveRequest, (request) => request.leaveTypeId)
   leaveRequests: LeaveRequest[];
 }

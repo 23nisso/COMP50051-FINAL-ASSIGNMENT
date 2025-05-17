@@ -9,31 +9,31 @@ router.use(MiddlewareFactory.authenticateToken);
 
 router.get(
   "/:id/leave-balance",
-  MiddlewareFactory.authorizeRoles(["manager", "admin"]),
+  MiddlewareFactory.authoriseRoles([1, 2]),
   userController.getLeaveBalance
 );
 
 router.get(
   "/",
-  MiddlewareFactory.authorizeRoles(["admin"]),
+  MiddlewareFactory.authoriseRoles([1]),
   userController.getAllUsers
 );
 
 router.post(
   "/",
-  MiddlewareFactory.authorizeRoles(["admin"]),
+  MiddlewareFactory.authoriseRoles([1]),
   userController.create
 );
 
 router.patch(
   "/:id",
-  MiddlewareFactory.authorizeRoles(["admin"]),
+  MiddlewareFactory.authoriseRoles([1]),
   userController.update
 );
 
 router.delete(
   "/:id",
-  MiddlewareFactory.authorizeRoles(["admin"]),
+  MiddlewareFactory.authoriseRoles([1]),
   userController.delete
 );
 

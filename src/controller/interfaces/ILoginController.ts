@@ -36,11 +36,10 @@ export class LoginController implements ILoginController {
         }
 
         const user = await this.userRepository.createQueryBuilder("user")
-                                            .addSelect(["user.password", 
-                                                        "user.salt"])               
-                                            .leftJoinAndSelect("user.role", "role") 
-                                            .where("user.email = :email", { email: email })
-                                            .getOne();
+  .addSelect(["user.password", "user.salt"])
+  .leftJoinAndSelect("user.role", "role")
+  .where("user.email = :email", { email })
+  .getOne();
 
         if (!user) {
             throw new AppError(LoginController.ERROR_USER_NOT_FOUND);
@@ -49,7 +48,7 @@ export class LoginController implements ILoginController {
         if (!PasswordHandler.verifyPassword(password, user.password, user.salt)){
             throw new AppError(LoginController.ERROR_PASSWORD_INCORRECT);
         }
-        let token = new UserDTOToken(user.email, user.role);
+        let token = new UserDTOToken(user.email, user.role.roleId);
 
         res.status(StatusCodes.ACCEPTED).send(jwt.sign({ token }, 
                                                 process.env.JWT_SECRET, 

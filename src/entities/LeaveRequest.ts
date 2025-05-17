@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from './User';
 import { LeaveType } from './LeaveType';
 
@@ -9,12 +9,11 @@ export class LeaveRequest {
   leaveRequestId: number;
 
   @ManyToOne(() => LeaveType, (leaveType) => leaveType)
-  @JoinColumn({ name: "leaveTypeId" })
-  leaveType: LeaveType;
+  leaveTypeId: number;
 
-  @ManyToOne(() => User, user => user)
+  @ManyToOne(() => User, (user) => user.leaveRequest)
   @JoinColumn({ name: "userId" })
-  user: User;
+  user: number;
 
   @Column({ type: 'date' })
   startDate: Date;

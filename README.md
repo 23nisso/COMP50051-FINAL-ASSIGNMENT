@@ -26,7 +26,7 @@
   - Passwords are salted and hashed using scrypt.
   - JWT tokens used for authentication.
   - Rate limiting and helmet middleware enabled.
-  - Logs unauthorized access attempts.
+  - Logs unauthorised access attempts.
 
 # Testing:
   - Unit and integration tests using Jest.

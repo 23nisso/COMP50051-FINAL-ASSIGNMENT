@@ -9,31 +9,31 @@ router.use(MiddlewareFactory.authenticateToken);
 
 router.post(
   "/",
-  MiddlewareFactory.authorizeRoles(["staff"]),
+  MiddlewareFactory.authoriseRoles([3]),
   leaveRequestController.create
 );
 
 router.get(
   "/pending",
-  MiddlewareFactory.authorizeRoles(["manager", "admin"]),
+  MiddlewareFactory.authoriseRoles([1, 2]),
   leaveRequestController.getPendingRequests 
 );
 
 router.patch(
   "/:id/approve",
-  MiddlewareFactory.authorizeRoles(["manager", "admin"]),
+  MiddlewareFactory.authoriseRoles([1, 2]),
   leaveRequestController.approved
 );
 
 router.patch(
   "/:id/reject",
-  MiddlewareFactory.authorizeRoles(["manager", "admin"]),
+  MiddlewareFactory.authoriseRoles([1, 2]),
   leaveRequestController.rejected
 );
 
 router.delete(
   "/",
-  MiddlewareFactory.authorizeRoles(["staff"]),
+  MiddlewareFactory.authoriseRoles([3]),
   leaveRequestController.cancelled
 );
 

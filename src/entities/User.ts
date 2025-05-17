@@ -1,14 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert, OneToMany} from "typeorm"
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, BeforeInsert} from "typeorm";
+import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
 import { Role } from "./Role";
 import { Department } from "./Department";
-import { Exclude } from 'class-transformer';
-import { PasswordHandler } from '../helpers/handlers/PasswordHandler';
 import { LeaveRequest } from "./LeaveRequest";
+import { PasswordHandler } from "../helpers/handlers/PasswordHandler";
 
 @Entity()
 export class User {
-
   @PrimaryGeneratedColumn()
   userId: number;
 
@@ -44,6 +42,8 @@ export class User {
   @Column({ default: 25 })
   annualLeaveBalance: number;
 
-  @OneToMany(() => LeaveRequest, (request) => request.user)
-  leaveRequests: LeaveRequest[];
+  @OneToMany(() => LeaveRequest, (leaveRequest) => leaveRequest.user)
+    leaveRequest: LeaveRequest[];
 }
+
+

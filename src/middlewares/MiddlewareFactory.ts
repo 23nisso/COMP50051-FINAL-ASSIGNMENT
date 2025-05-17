@@ -58,7 +58,11 @@ export class MiddlewareFactory {
       return;
     }
 
-    const tokenReceived = authHeader.split(" ")[1];
+    const tokenReceived = authHeader?.split(" ")[1];
+if (!tokenReceived) {
+  Logger.error("Bearer token missing from header.");
+  return ResponseHandler.sendErrorResponse(res, StatusCodes.UNAUTHORIZED, "Token format invalid");
+}
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!jwtSecret) {
@@ -73,7 +77,7 @@ export class MiddlewareFactory {
       }
 
       try {
-        const { token: { email, role } } = payload as any;
+        const { email, roleId: role } = payload
         if (!email || !role) {
           throw new Error();
         }
@@ -87,14 +91,13 @@ export class MiddlewareFactory {
     });
   }
 
-  static authorizeRoles(allowedRoles: string[]): RequestHandler {
-    return (req: IAuthenticatedJWTRequest, res: Response, next: NextFunction) => {
-      const role = req.signedInUser?.roleId?.toLowerCase();
-      if (!role || !allowedRoles.map(r => r.toLowerCase()).includes(role)) {
-        Logger.warn(`Access denied for role: ${role}`);
-        return ResponseHandler.sendErrorResponse(res, StatusCodes.FORBIDDEN, "Access denied: insufficient permissions.");
-      }
-      next();
-    };
-  }
-}
+  static authoriseRoles(allowedRoles: (string | number)[]): RequestHandler {
+  return (req: IAuthenticatedJWTRequest, res: Response, next: NextFunction) => {
+    const role = req.signedInUser?.roleId;
+    if (!role || !allowedRoles.includes(role)) {
+      Logger.warn(`Access denied for role: ${role}`);
+      return ResponseHandler.sendErrorResponse(res, StatusCodes.FORBIDDEN, "Access denied: insufficient permissions.");
+    }
+    next();
+  };
+}}

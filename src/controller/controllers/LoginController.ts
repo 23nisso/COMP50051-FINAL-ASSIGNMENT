@@ -21,10 +21,8 @@ export class LoginController {
       return res.status(400).json({ error: "Both email and password are required" });
     }
 
-    const user = await this.userRepository
-  .createQueryBuilder("user")
-  .addSelect("user.password")
-  .addSelect("user.salt")
+    const user = await this.userRepository.createQueryBuilder("user")
+  .addSelect(["user.password", "user.salt"])
   .leftJoinAndSelect("user.role", "role")
   .where("user.email = :email", { email })
   .getOne();
@@ -47,11 +45,11 @@ console.log("Pepper used:", process.env.PEPPER);
     const token = jwt.sign(
   {
     email: user.email,
-    role: user.role.name,
-    },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    roleId: user.role.roleId, 
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "1h" }
+);
 
     return res.status(200).json({ token });
   }

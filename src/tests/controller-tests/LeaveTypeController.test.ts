@@ -4,7 +4,6 @@ import { Repository } from "typeorm";
 import { StatusCodes } from "http-status-codes";
 import { ResponseHandler } from "../../../src/helpers/handlers/ResponseHandler";
 import { Request, Response } from "express";
-import * as classValidator from "class-validator";
 import { mock } from "jest-mock-extended";
 
 jest.mock("../../src/helpers/handlers/ResponseHandler");

@@ -9,6 +9,8 @@ import { StatusCodes } from 'http-status-codes';
 import { validate } from "class-validator";
 import { IEntityController} from '../interfaces/IEntityController';
 import { AppError } from "../../helpers/AppError";
+import { Role } from "../../entities/Role";
+import { Department } from '../../entities/Department';
 
 export class UserController implements IEntityController {
   public static readonly ERROR_NO_USER_ID_PROVIDED = "No ID provided";
@@ -124,7 +126,7 @@ export class UserController implements IEntityController {
     if (requester.roleId === "manager") {
       const userManagementRepo = AppDataSource.getRepository(UserManagement);
       const assignment = await userManagementRepo.findOne({
-        where: { user: { userId }, manager: { email: requester.email } },
+        where: { managerId: requester.userId },
         relations: ["user", "manager"]
       });
 
@@ -136,7 +138,7 @@ export class UserController implements IEntityController {
     return ResponseHandler.sendSuccessResponse(res, {
       userId: targetUser.userId,
       name: `${targetUser.firstName} ${targetUser.surname}`,
-      department: targetUser.department?.name || null,
+      department: targetUser.department || null,
       remainingLeave: targetUser.annualLeaveBalance
     });
   };
@@ -150,8 +152,8 @@ export class UserController implements IEntityController {
       userId: user.userId,
       name: `${user.firstName} ${user.surname}`,
       email: user.email,
-      role: user.role?.name || "Unknown",
-      department: user.department?.name || "Unassigned",
+      role: user.role || "Unknown",
+      department: user.department || "Unassigned",
       annualLeaveBalance: user.annualLeaveBalance
     }));
 
@@ -161,12 +163,18 @@ export class UserController implements IEntityController {
   public create = async (req: Request, res: Response): Promise<void> => {
     try {
       let user = new User();
+      user.role = { roleId: req.body.roleId } as Role;
+      user.department = { departmentId: req.body.departmentId } as Department;
       user.firstName = req.body.firstName;
       user.surname = req.body.surname;
+      user.officeLocation = req.body.officeLocation;
+      user.officeName = req.body.officeName;
       user.email = req.body.email;
       user.password = req.body.password;
-      user.role = req.body.roleId;
+      user.annualLeaveBalance = req.body.annualLeaveBalance;
 
+      console.log("VALIDATING USER >>>", user);
+      
       const errors = await validate(user);
       if (errors.length > 0) {
         throw new Error(errors.map(err => Object.values(err.constraints || {})).join(", "));
@@ -222,8 +230,15 @@ export class UserController implements IEntityController {
         throw new Error(UserController.ERROR_USER_NOT_FOUND);
       }
 
+      user.role = req.roleId;
+      user.department = req.departmentId;
+      user.firstName = req.body.firstName;
+      user.surname = req.body.surname;
+      user.officeLocation = req.body.officeLocation;
+      user.officeName = req.body.officeName;
       user.email = req.body.email;
-      user.role = req.body.roleId;
+      user.password = req.body.password;
+      user.annualLeaveBalance = req.annualLeaveBalance;
 
       const errors = await validate(user);
       if (errors.length > 0) {

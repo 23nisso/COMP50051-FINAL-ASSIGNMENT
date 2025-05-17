@@ -9,19 +9,19 @@ router.use(MiddlewareFactory.authenticateToken);
 
 router.get(
   "/",
-  MiddlewareFactory.authorizeRoles(["admin"]),
+  MiddlewareFactory.authoriseRoles([1]),
   departmentController.getAll
 );
 
 router.post(
   "/",
-  MiddlewareFactory.authorizeRoles(["admin"]),
+  MiddlewareFactory.authoriseRoles([1]),
   departmentController.create
 );
 
 router.get(
   "/:id/users",
-  MiddlewareFactory.authorizeRoles(["admin", "manager"]),
+  MiddlewareFactory.authoriseRoles([1, 2]),
   departmentController.getUsersInDepartment
 );
 

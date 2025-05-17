@@ -1,4 +1,5 @@
 import { Server } from "./Server";
+import { Router } from "express";
 import { DataSource } from "typeorm";
 import { AppDataSource } from "./data-source";
 import { LoginRouter } from "./routers/LoginRouter";
@@ -7,12 +8,7 @@ import UserRouter from "./routers/UserRouter";
 import LeaveRequestRouter from "./routers/LeaveRequestRouter";
 import { LeaveTypeRouter } from "./routers/LeaveTypeRouter";
 import { UserManagementRouter } from "./routers/UserManagementRouter";
-import { RoleController } from "./controller/controllers/RoleController";
-import { UserController } from "./controller/controllers/UserController";
 import { LoginController } from "./controller/controllers/LoginController";
-import { LeaveRequestController } from "./controller/controllers/LeaveRequestController";
-import { LeaveTypeController } from "./controller/controllers/LeaveTypeController";
-import { UserManagementController } from "./controller/controllers/UserManagementController";
 
 const DEFAULT_PORT = 7063;
 const port = process.env.SERVER_PORT || DEFAULT_PORT;
@@ -28,7 +24,7 @@ const routers = [
     basePath: "/api/login",
     routeName: "Login",
     authenticate: false,
-    getRouter: () => LoginRouter
+    getRouter: () => new LoginRouter(Router(), new LoginController()).getRouter()
   },
   {
     basePath: "/api/users",

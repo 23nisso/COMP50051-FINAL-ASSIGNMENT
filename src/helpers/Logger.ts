@@ -2,7 +2,7 @@ import * as winston from "winston";
 
 export class Logger {
     private static instance: winston.Logger = winston.createLogger({
-        level: process.env.NODE_ENV === "production" ? "info" : "debug",
+        level: process.env.NODE_ENV === "development" ? "info" : "debug",
         format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.errors({ stack: true }),

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { LeaveTypeRouter } from '../../../src/routes/LeaveTypeRouter';
+import { LeaveTypeRouter } from '../../routers/LeaveTypeRouter';
 
 const app = express();
 app.use(express.json());

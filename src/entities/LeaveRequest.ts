@@ -8,13 +8,13 @@ export class LeaveRequest {
   @PrimaryGeneratedColumn()
   leaveRequestId: number;
 
-  @ManyToOne(() => User, user => user)
-  @JoinColumn()
-  userId: number;
+  @ManyToOne(() => LeaveType, (leaveType) => leaveType)
+  @JoinColumn({ name: "leaveTypeId" })
+  leaveType: LeaveType;
 
-  @ManyToOne(() => LeaveType)
-  @JoinColumn()
-  leaveTypeId: number;
+  @ManyToOne(() => User, user => user)
+  @JoinColumn({ name: "userId" })
+  user: User;
 
   @Column({ type: 'date' })
   startDate: Date;

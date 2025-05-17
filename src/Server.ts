@@ -3,9 +3,10 @@ import { DataSource } from "typeorm";
 import morgan, {StreamOptions} from "morgan";
 import { Logger } from "./helpers/Logger";
 import { MiddlewareFactory } from "./middlewares/MiddlewareFactory";
-import { IRouter} from "./routes/IRouter";
+import { IRouter} from "./routers/IRouter";
 import { ErrorHandler } from "./helpers/handlers/ErrorHandler";
-import { Router } from "express"; 
+import { Router } from "express";
+import DepartmentRouter from "./routers/DepartmentRouter";
 
 export class Server {
     public static readonly ERROR_TOKEN_IS_INVALID = "Not authorised - Token is invalid";

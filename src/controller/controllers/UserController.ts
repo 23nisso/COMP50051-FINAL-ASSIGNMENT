@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../../data-source'; 
 import { User } from '../../entities/User';
+import { UserManagement } from '../../entities/UserManagement';
 import { Repository } from "typeorm";
 import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
 import { instanceToPlain } from "class-transformer";
@@ -9,7 +10,7 @@ import { validate } from "class-validator";
 import { IEntityController} from '../interfaces/IEntityController';
 import { AppError } from "../../helpers/AppError";
 
-export class UserController implements IEntityController{
+export class UserController implements IEntityController {
   public static readonly ERROR_NO_USER_ID_PROVIDED = "No ID provided";
   public static readonly ERROR_INVALID_USER_ID_FORMAT = "Invalid ID format";
   public static readonly ERROR_USER_NOT_FOUND = "User not found";
@@ -33,19 +34,19 @@ export class UserController implements IEntityController{
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const users = await this.userRepository.find({
-        relations: ["role"], 
+        relations: ["role"],
       });
 
       if (users.length === 0) {
-        ResponseHandler.sendSuccessResponse(res, [], StatusCodes.NO_CONTENT); 
+        ResponseHandler.sendSuccessResponse(res, [], StatusCodes.NO_CONTENT);
       }
 
       ResponseHandler.sendSuccessResponse(res, users);
 
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.INTERNAL_SERVER_ERROR, 
-                                      `${UserController.ERROR_FAILED_TO_RETRIEVE_USERS}: ${error.message}`);
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        `${UserController.ERROR_FAILED_TO_RETRIEVE_USERS}: ${error.message}`);
     }
   };
 
@@ -53,57 +54,108 @@ export class UserController implements IEntityController{
     const email = req.params.emailAddress;
 
     if (!email || email.trim().length === 0) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.BAD_REQUEST, 
-                                        UserController.ERROR_EMAIL_REQUIRED);
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.BAD_REQUEST,
+        UserController.ERROR_EMAIL_REQUIRED);
       return;
     }
 
     try {
-      const user = await this.userRepository.find({ where: { email: email },  
-                                                    relations: ["role"]});
+      const user = await this.userRepository.find({ where: { email: email },
+        relations: ["role"] });
       if (user.length === 0) {
-        ResponseHandler.sendErrorResponse(res, 
-                                          StatusCodes.BAD_REQUEST, 
-                                          `${email} not found`);
+        ResponseHandler.sendErrorResponse(res,
+          StatusCodes.BAD_REQUEST,
+          `${email} not found`);
         return;
       }
 
       ResponseHandler.sendSuccessResponse(res, user);
 
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.BAD_REQUEST,  
-                                        UserController.ERROR_UNABLE_TO_FIND_USER_EMAIL(email));
-      }
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.BAD_REQUEST,
+        UserController.ERROR_UNABLE_TO_FIND_USER_EMAIL(email));
+    }
   };
 
   public getById = async (req: Request, res: Response): Promise<void> => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.BAD_REQUEST, 
-                                        UserController.ERROR_INVALID_USER_ID_FORMAT);
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.BAD_REQUEST,
+        UserController.ERROR_INVALID_USER_ID_FORMAT);
       return;
     }
 
     try {
-      const user = await this.userRepository.findOne({ where: { userId: id },  
-                                                      relations: ["role"] });
+      const user = await this.userRepository.findOne({ where: { userId: id },
+        relations: ["role"] });
       if (!user) {
-        ResponseHandler.sendErrorResponse(res, 
-                                          StatusCodes.NO_CONTENT, 
-                                          UserController.ERROR_USER_NOT_FOUND_WITH_ID(id));
+        ResponseHandler.sendErrorResponse(res,
+          StatusCodes.NO_CONTENT,
+          UserController.ERROR_USER_NOT_FOUND_WITH_ID(id));
         return;
       }
 
       ResponseHandler.sendSuccessResponse(res, user);
-     
+
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.BAD_REQUEST, 
-                                        UserController.ERROR_RETRIEVING_USER(error.message));
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.BAD_REQUEST,
+        UserController.ERROR_RETRIEVING_USER(error.message));
     }
+  };
+
+  public getLeaveBalance = async (req: Request, res: Response): Promise<void> => {
+    const userId = parseInt(req.params.id);
+    const requester = req.signedInUser;
+
+    const userRepo = AppDataSource.getRepository(User);
+    const targetUser = await userRepo.findOne({
+      where: { userId },
+      relations: ["role", "department"]
+    });
+
+    if (!targetUser) {
+      return ResponseHandler.sendErrorResponse(res, 404, "User not found");
+    }
+
+    if (requester.roleId === "manager") {
+      const userManagementRepo = AppDataSource.getRepository(UserManagement);
+      const assignment = await userManagementRepo.findOne({
+        where: { user: { userId }, manager: { email: requester.email } },
+        relations: ["user", "manager"]
+      });
+
+      if (!assignment) {
+        return ResponseHandler.sendErrorResponse(res, 403, "Access denied: not your team member");
+      }
+    }
+
+    return ResponseHandler.sendSuccessResponse(res, {
+      userId: targetUser.userId,
+      name: `${targetUser.firstName} ${targetUser.surname}`,
+      department: targetUser.department?.name || null,
+      remainingLeave: targetUser.annualLeaveBalance
+    });
+  };
+
+  public getAllUsers = async (_req: Request, res: Response): Promise<void> => {
+    const users = await AppDataSource.getRepository(User).find({
+      relations: ["role", "department"]
+    });
+
+    const formatted = users.map(user => ({
+      userId: user.userId,
+      name: `${user.firstName} ${user.surname}`,
+      email: user.email,
+      role: user.role?.name || "Unknown",
+      department: user.department?.name || "Unassigned",
+      annualLeaveBalance: user.annualLeaveBalance
+    }));
+
+    ResponseHandler.sendSuccessResponse(res, formatted);
   };
 
   public create = async (req: Request, res: Response): Promise<void> => {
@@ -116,19 +168,19 @@ export class UserController implements IEntityController{
       user.role = req.body.roleId;
 
       const errors = await validate(user);
-      if (errors.length > 0) { 
-         throw new Error (errors.map(err => Object.values(err.constraints || {})).join(", "));
+      if (errors.length > 0) {
+        throw new Error(errors.map(err => Object.values(err.constraints || {})).join(", "));
       }
 
-      user = await this.userRepository.save(user); 
-      ResponseHandler.sendSuccessResponse(res, 
-                                          instanceToPlain(user), 
-                                          StatusCodes.CREATED);
+      user = await this.userRepository.save(user);
+      ResponseHandler.sendSuccessResponse(res,
+        instanceToPlain(user),
+        StatusCodes.CREATED);
 
-    } catch (error: any) { 
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.BAD_REQUEST, 
-                                        error.message);
+    } catch (error: any) {
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.BAD_REQUEST,
+        error.message);
     }
   };
 
@@ -147,24 +199,24 @@ export class UserController implements IEntityController{
       }
 
       ResponseHandler.sendSuccessResponse(res,
-                                          "User deleted", 
-                                          StatusCodes.OK);
-  
+        "User deleted",
+        StatusCodes.OK);
+
     } catch (error: any) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.NOT_FOUND, 
-                                        error.message);
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.NOT_FOUND,
+        error.message);
     }
   };
 
   public update = async (req: Request, res: Response): Promise<void> => {
-      const id = req.body.id;
-     try{
+    const id = req.body.id;
+    try {
       if (!id) {
         throw new Error(UserController.ERROR_NO_USER_ID_PROVIDED);
       }
-      
-      let user = await this.userRepository.findOneBy({ userId : id });
+
+      let user = await this.userRepository.findOneBy({ userId: id });
 
       if (!user) {
         throw new Error(UserController.ERROR_USER_NOT_FOUND);
@@ -174,20 +226,20 @@ export class UserController implements IEntityController{
       user.role = req.body.roleId;
 
       const errors = await validate(user);
-      if (errors.length > 0) { 
-         throw new Error (errors.map(err => Object.values(err.constraints || {})).join(", "));
+      if (errors.length > 0) {
+        throw new Error(errors.map(err => Object.values(err.constraints || {})).join(", "));
       }
 
       user = await this.userRepository.save(user);
 
-      ResponseHandler.sendSuccessResponse(res, 
-                                          user, 
-                                          StatusCodes.OK);
+      ResponseHandler.sendSuccessResponse(res,
+        user,
+        StatusCodes.OK);
 
     } catch (error: any) {
-      ResponseHandler.sendErrorResponse(res, 
-                                        StatusCodes.BAD_REQUEST, 
-                                        error.message);
+      ResponseHandler.sendErrorResponse(res,
+        StatusCodes.BAD_REQUEST,
+        error.message);
     }
   };
 }

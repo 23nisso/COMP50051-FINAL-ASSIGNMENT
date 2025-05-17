@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express, { Router } from 'express';
-import { RoleRouter } from '../../routes/RoleRouter';
+import { RoleRouter } from '../../routers/RoleRouter';
 import { RoleController } from '../../controller/controllers/RoleController';
 import { StatusCodes } from 'http-status-codes';
 

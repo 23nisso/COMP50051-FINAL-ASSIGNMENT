@@ -18,7 +18,7 @@ export class LoginController {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password required" });
+      return res.status(400).json({ error: "Both email and password are required" });
     }
 
     const user = await this.userRepository
@@ -45,11 +45,11 @@ console.log("Pepper used:", process.env.PEPPER);
     }
 
     const token = jwt.sign(
-      {
-        userId: user.userId,
-        roleId: user.role.name,
-      },
-      process.env.JWT_SECRET || "hardcodedSecret",
+  {
+    email: user.email,
+    role: user.role.name,
+    },
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 

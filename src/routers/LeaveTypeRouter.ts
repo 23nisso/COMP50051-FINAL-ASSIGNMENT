@@ -1,15 +1,15 @@
 import { Router } from 'express';
-import { LeaveRequestController } from '../controller/controllers/LeaveRequestController';
+import { LeaveTypeController } from '../controller/controllers/LeaveTypeController';
 import { IRouter } from './IRouter';
 
-export class LeaveRequestRouter implements IRouter {
-  routeName = 'leave_request';
-  basePath = '/api/leaverequests';
-  authenticate = true;
+export class LeaveTypeRouter implements IRouter {
+  routeName = 'leave_type';
+  basePath = '/api/leavetypes';
+  authenticate = false;
 
   constructor(
     private readonly router: Router,
-    private readonly controller: LeaveRequestController
+    private readonly controller: LeaveTypeController
   ) {}
 
   getRouter(): Router {

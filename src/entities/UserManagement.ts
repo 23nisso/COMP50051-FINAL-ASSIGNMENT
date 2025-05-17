@@ -8,11 +8,11 @@ export class UserManagement {
   id: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'managerId' })
+  @JoinColumn({ name: "managerId" })
   manager: User;
 
   @Column({ type: 'date', nullable: true })

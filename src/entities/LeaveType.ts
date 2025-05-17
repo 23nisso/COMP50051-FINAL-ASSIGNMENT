@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { LeaveRequest } from './LeaveRequest';
 
 @Entity({ name: "leave_type" })
 export class LeaveType {
@@ -17,4 +18,7 @@ export class LeaveType {
 
   @Column({ default: 5 })
   maxRollOverDays: number;
+
+  @OneToMany(() => LeaveRequest, (request) => request.leaveType)
+  leaveRequests: LeaveRequest[];
 }

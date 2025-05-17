@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { UserManagementRouter } from '../../../src/routes/UserManagementRouter';
+import { UserManagementRouter } from '../../routers/UserManagementRouter';
 
 const app = express();
 app.use(express.json());

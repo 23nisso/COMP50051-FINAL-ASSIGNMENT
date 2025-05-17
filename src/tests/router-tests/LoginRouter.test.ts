@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { LoginRouter } from '../../../src/routes/LoginRouter';
+import { LoginRouter } from '../../routers/LoginRouter';
 
 const app = express();
 app.use(express.json());

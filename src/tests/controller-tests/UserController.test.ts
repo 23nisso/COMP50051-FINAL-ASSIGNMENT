@@ -33,7 +33,7 @@ describe('UserController', () => {
             user.userId = 1;
             user.password = 'a'.repeat(10);
             user.email = 'manager@email.com';
-            user.role = role;
+            user.role = { roleId: 1 } as Role;
             return user;
     }
 
@@ -46,7 +46,7 @@ describe('UserController', () => {
         user.userId = 1;
         user.password = 'b'.repeat(10);
         user.email = 'staff@email.com';
-        user.role = role;
+        user.role = { roleId: 1 } as Role;
         return user;
     }
 

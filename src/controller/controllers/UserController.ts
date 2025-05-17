@@ -126,7 +126,7 @@ export class UserController implements IEntityController {
     if (requester.roleId === "manager") {
       const userManagementRepo = AppDataSource.getRepository(UserManagement);
       const assignment = await userManagementRepo.findOne({
-        where: { managerId: requester.userId },
+        where: { manager: requester.userId },
         relations: ["user", "manager"]
       });
 
@@ -218,7 +218,7 @@ export class UserController implements IEntityController {
   };
 
   public update = async (req: Request, res: Response): Promise<void> => {
-    const id = req.body.id;
+    const id = parseInt(req.params.id);
     try {
       if (!id) {
         throw new Error(UserController.ERROR_NO_USER_ID_PROVIDED);
@@ -230,8 +230,8 @@ export class UserController implements IEntityController {
         throw new Error(UserController.ERROR_USER_NOT_FOUND);
       }
 
-      user.role = req.roleId;
-      user.department = req.departmentId;
+      user.role = { roleId: req.body.roleId } as Role;
+      user.department = { departmentId: req.body.departmentId } as Department;
       user.firstName = req.body.firstName;
       user.surname = req.body.surname;
       user.officeLocation = req.body.officeLocation;

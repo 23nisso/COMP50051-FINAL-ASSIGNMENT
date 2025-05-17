@@ -22,7 +22,7 @@ describe("User Entity tests", () => {
         user.userId = 1;
         user.email = "test@email.com"; 
         user.password = 'a'.repeat(10);
-        user.role = role;
+        user.role = { roleId: 1 } as Role;
     });
 
 it("A password must be a string", async () => {

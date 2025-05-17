@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, BeforeInsert} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, BeforeInsert, BeforeUpdate} from "typeorm";
 import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
 import { Role } from "./Role";
 import { Department } from "./Department";
@@ -30,9 +30,13 @@ export class User {
   @Column()
   officeName: string;
 
+  @IsNotEmpty()
+  @IsEmail()
   @Column()
   email: string;
 
+  @IsNotEmpty()
+  @MinLength(10, { message: "Password must be at least 10 characters long" })
   @Column()
   password: string;
 
@@ -43,7 +47,17 @@ export class User {
   annualLeaveBalance: number;
 
   @OneToMany(() => LeaveRequest, (leaveRequest) => leaveRequest.user)
-    leaveRequest: LeaveRequest[];
+  leaveRequest: LeaveRequest[];
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  hashPassword(): void {
+    if (!this.password) return;
+
+    const { hashedPassword, salt } = PasswordHandler.hashPassword(this.password);
+    this.password = hashedPassword;
+    this.salt = salt;
+  }
 }
 
 

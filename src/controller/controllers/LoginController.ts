@@ -23,12 +23,6 @@ export class LoginController {
     .where("user.email = :email", { email })
     .getOne();
 
-console.log("Login attempt from:", email);
-console.log("Submitted password:", password);
-console.log("User's stored hash:", user.password);
-console.log("User's salt:", user.salt);
-console.log("Pepper used:", process.env.PEPPER);
-
     if (!user) {
       return res.status(401).json({ error: "Invalid email. Please try again." });
     }

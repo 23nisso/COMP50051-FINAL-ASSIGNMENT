@@ -3,6 +3,8 @@ import { AppDataSource } from "../../data-source";
 import { Department } from "../../entities/Department";
 import { ResponseHandler } from "../../helpers/handlers/ResponseHandler";
 import { StatusCodes } from "http-status-codes";
+import { User } from "../../entities/User";
+import { IAuthenticatedJWTRequest } from "../interfaces/IAuthenticatedJWTRequest";
 
 export class DepartmentController {
   public getAll = async (req: Request, res: Response): Promise<void> => {
@@ -18,16 +20,38 @@ export class DepartmentController {
     ResponseHandler.sendSuccessResponse(res, department, StatusCodes.CREATED);
   };
 
-  public getUsersInDepartment = async (req: Request, res: Response): Promise<void> => {
-    const departmentId = parseInt(req.params.id);
-    const department = await AppDataSource.getRepository(Department).find({
-      where: { departmentId },
-      relations: ["users"]
-    });
-    if (department.length === 0) {
-      ResponseHandler.sendErrorResponse(res, 404, "Department not found");
-    } else {
-      ResponseHandler.sendSuccessResponse(res, department[0].users);
+  public async getUsersInDepartment(req: IAuthenticatedJWTRequest, res: Response): Promise<void> {
+  try {
+    const managerId = req.signedInUser?.userId;
+
+    if (!managerId) {
+      return ResponseHandler.sendErrorResponse(res, 400, "Manager ID missing from token.");
     }
-  };
+
+    const userRepo = AppDataSource.getRepository(User);
+
+    const manager = await userRepo.findOne({
+      where: { userId: managerId },
+      relations: ["department"]
+    });
+
+    if (!manager || !manager.department) {
+      return ResponseHandler.sendErrorResponse(res, 404, "Manager's department not found.");
+    }
+
+    const departmentId = manager.department.departmentId;
+
+    const employees = await userRepo.find({
+      where: {
+        department: { departmentId }
+      },
+      relations: ["role", "department"]
+    });
+
+    ResponseHandler.sendSuccessResponse(res, employees);
+  } catch (error) {
+    console.error(error);
+    ResponseHandler.sendErrorResponse(res, 500, "Failed to retrieve department employees.");
+  }
+};
 }

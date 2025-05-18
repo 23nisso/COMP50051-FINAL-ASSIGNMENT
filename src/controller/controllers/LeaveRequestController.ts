@@ -5,7 +5,7 @@ import { LeaveType } from '../../entities/LeaveType';
 import { AppDataSource } from '../../data-source';
 import { Repository, In } from 'typeorm';
 import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
-import { IAuthenticatedJWTRequest } from '../../types/IAuthenticatedJWTRequest';
+import { IAuthenticatedJWTRequest } from '../interfaces/IAuthenticatedJWTRequest';
 import { UserManagement } from "../../entities/UserManagement";
 
 export class LeaveRequestController {

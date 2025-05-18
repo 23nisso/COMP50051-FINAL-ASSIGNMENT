@@ -1,45 +1,57 @@
 import { Router } from "express";
 import { LeaveRequestController } from "../controller/controllers/LeaveRequestController";
 import { MiddlewareFactory } from "../middlewares/MiddlewareFactory";
+import { IRouter } from "./IRouter";
 
-const router = Router();
-const leaveRequestController = new LeaveRequestController();
+export class LeaveRequestRouter implements IRouter {
+  routeName = "LeaveRequest";
+  basePath = "/api/leave-requests";
+  authenticate = true;
 
-router.use(MiddlewareFactory.authenticateToken);
+  constructor(
+    private readonly router: Router,
+    private readonly controller: LeaveRequestController
+  ) {}
 
-router.post(
-  "/",
-  MiddlewareFactory.authoriseRoles([1, 3]),
-  leaveRequestController.create.bind(leaveRequestController)
-);
+  getRouter(): Router {
+    this.router.use(MiddlewareFactory.authenticateToken);
 
-router.get(
-  "/pending",
-  MiddlewareFactory.authoriseRoles([1, 2]),
-  leaveRequestController.getPendingRequests.bind(leaveRequestController)
-);
+    this.router.post(
+      "/",
+      MiddlewareFactory.authoriseRoles([1, 3]),
+      this.controller.create.bind(this.controller)
+    );
 
-router.patch(
-  "/:id/approve",
-  MiddlewareFactory.authoriseRoles([1, 2]),
-  leaveRequestController.approved.bind(leaveRequestController)
-);
+    this.router.get(
+      "/pending",
+      MiddlewareFactory.authoriseRoles([1, 2]),
+      this.controller.getPendingRequests.bind(this.controller)
+    );
 
-router.patch(
-  "/:id/reject",
-  MiddlewareFactory.authoriseRoles([1, 2]),
-  leaveRequestController.rejected.bind(leaveRequestController)
-);
+    this.router.patch(
+      "/:id/approve",
+      MiddlewareFactory.authoriseRoles([1, 2]),
+      this.controller.approved.bind(this.controller)
+    );
 
-router.delete(
-  "/",
-  MiddlewareFactory.authoriseRoles([1, 3]),
-  leaveRequestController.cancelled.bind(leaveRequestController)
-);
+    this.router.patch(
+      "/:id/reject",
+      MiddlewareFactory.authoriseRoles([1, 2]),
+      this.controller.rejected.bind(this.controller)
+    );
 
-router.get(
-  "/status/:id",
-  MiddlewareFactory.authoriseRoles([3]),
-  leaveRequestController.getMyRequests
-);
-export default router;
+    this.router.delete(
+      "/",
+      MiddlewareFactory.authoriseRoles([1, 3]),
+      this.controller.cancelled.bind(this.controller)
+    );
+
+    this.router.get(
+      "/status/:id",
+      MiddlewareFactory.authoriseRoles([3]),
+      this.controller.getMyRequests.bind(this.controller)
+    );
+
+    return this.router;
+  }
+}

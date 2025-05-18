@@ -172,8 +172,6 @@ export class UserController implements IEntityController {
       user.email = req.body.email;
       user.password = req.body.password;
       user.annualLeaveBalance = req.body.annualLeaveBalance;
-
-      console.log("VALIDATING USER >>>", user);
       
       const errors = await validate(user);
       if (errors.length > 0) {

@@ -1,28 +1,39 @@
 import { Router } from "express";
 import { DepartmentController } from "../controller/controllers/DepartmentController";
 import { MiddlewareFactory } from "../middlewares/MiddlewareFactory";
+import { IRouter } from "./IRouter";
 
-const router = Router();
-const departmentController = new DepartmentController();
+export class DepartmentRouter implements IRouter {
+  routeName = "Department";
+  basePath = "/api/departments";
+  authenticate = true;
 
-router.use(MiddlewareFactory.authenticateToken);
+  constructor(
+    private readonly router: Router,
+    private readonly controller: DepartmentController
+  ) {}
 
-router.get(
-  "/",
-  MiddlewareFactory.authoriseRoles([1]),
-  departmentController.getAll
-);
+  getRouter(): Router {
+    this.router.use(MiddlewareFactory.authenticateToken);
 
-router.post(
-  "/",
-  MiddlewareFactory.authoriseRoles([1]),
-  departmentController.create
-);
+    this.router.get(
+      "/",
+      MiddlewareFactory.authoriseRoles([1]),
+      this.controller.getAll.bind(this.controller)
+    );
 
-router.get(
-  "/:id/users",
-  MiddlewareFactory.authoriseRoles([1, 2]),
-  departmentController.getUsersInDepartment
-);
+    this.router.post(
+      "/",
+      MiddlewareFactory.authoriseRoles([1]),
+      this.controller.create.bind(this.controller)
+    );
 
-export default router;
+    this.router.get(
+      "/users",
+      MiddlewareFactory.authoriseRoles([1, 2]),
+      this.controller.getUsersInDepartment.bind(this.controller)
+    );
+
+    return this.router;
+  }
+}

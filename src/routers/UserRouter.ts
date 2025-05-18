@@ -24,7 +24,7 @@ export class UserRouter implements IRouter {
 
     this.router.get(
       "/",
-      MiddlewareFactory.authoriseRoles([1]),
+      MiddlewareFactory.authoriseRoles([1, 2]),
       this.controller.getAllUsers.bind(this.controller)
     );
 

@@ -1,5 +1,5 @@
 import { RequestHandler, Request, Response, NextFunction } from "express";
-import { IAuthenticatedJWTRequest } from "../types/IAuthenticatedJWTRequest";
+import { IAuthenticatedJWTRequest } from "../controller/interfaces/IAuthenticatedJWTRequest";
 import { Logger } from "../helpers/Logger";
 import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 import { StatusCodes } from "http-status-codes";
@@ -77,12 +77,13 @@ if (!tokenReceived) {
       }
 
       try {
-        const { email, roleId: role, userId } = payload;
-          if (!email || !role || !userId) {
-          throw new Error();
+        const { email, roleId, userId } = payload as { email: string; roleId: number; userId: number };
+
+        if (!email || !roleId || !userId) {
+        throw new Error();
         }
 
-        req.signedInUser = { email, roleId: role, userId };
+      req.signedInUser = { email, roleId, userId };
         next();
       } catch {
         Logger.error("JWT payload malformed");

@@ -37,10 +37,10 @@ export class User {
 
   @IsNotEmpty()
   @MinLength(10, { message: "Password must be at least 10 characters long" })
-  @Column()
+  @Column({ select: false })
   password: string;
 
-  @Column()
+  @Column({ select: false })
   salt: string;
 
   @Column({ default: 25 })
@@ -52,12 +52,12 @@ export class User {
   @BeforeInsert()
   @BeforeUpdate()
   hashPassword(): void {
-    if (!this.password) return;
+    if (!this.password || this.password.startsWith('$') || this.password.length === 128) return;
 
-    const { hashedPassword, salt } = PasswordHandler.hashPassword(this.password);
-    this.password = hashedPassword;
-    this.salt = salt;
-  }
+      const { hashedPassword, salt } = PasswordHandler.hashPassword(this.password);
+      
+      this.password = hashedPassword;
+      this.salt = salt;
+  };
 }
-
 

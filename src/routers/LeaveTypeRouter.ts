@@ -4,8 +4,8 @@ import { IRouter } from './IRouter';
 
 export class LeaveTypeRouter implements IRouter {
   routeName = 'leave_type';
-  basePath = '/api/leavetypes';
-  authenticate = false;
+  basePath = '/api/leave-types';
+  authenticate = true;
 
   constructor(
     private readonly router: Router,
@@ -13,8 +13,8 @@ export class LeaveTypeRouter implements IRouter {
   ) {}
 
   getRouter(): Router {
-    this.router.get(`${this.basePath}`, this.controller.getAll.bind(this.controller));
-    this.router.post(`${this.basePath}`, this.controller.create.bind(this.controller));
+      this.router.get("/", this.controller.getAll.bind(this.controller));
+      this.router.post("/", this.controller.create.bind(this.controller));
     return this.router;
   }
 }

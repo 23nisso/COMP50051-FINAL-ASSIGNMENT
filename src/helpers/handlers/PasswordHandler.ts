@@ -20,7 +20,8 @@ export class PasswordHandler {
 
     public static verifyPassword(password: string, 
                                 hashedPassword: string, 
-                                salt: string): boolean {
+                                salt: string): 
+                                boolean {
                                     
         const hashToCompare = scryptSync(this.PEPPER + password, 
                                         salt, 

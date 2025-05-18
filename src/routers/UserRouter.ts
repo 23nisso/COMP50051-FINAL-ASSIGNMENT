@@ -1,40 +1,51 @@
 import { Router } from "express";
 import { UserController } from "../controller/controllers/UserController";
 import { MiddlewareFactory } from "../middlewares/MiddlewareFactory";
+import { IRouter } from "./IRouter";
 
-const router = Router();
-const userController = new UserController();
+export class UserRouter implements IRouter {
+  routeName = "User";
+  basePath = "/api/users";
+  authenticate = true;
 
-router.use(MiddlewareFactory.authenticateToken);
+  constructor(
+    private readonly router: Router,
+    private readonly controller: UserController
+  ) {}
 
-router.get(
-  "/:id/leave-balance",
-  MiddlewareFactory.authoriseRoles([1, 2]),
-  userController.getLeaveBalance
-);
+  getRouter(): Router {
+    this.router.use(MiddlewareFactory.authenticateToken);
 
-router.get(
-  "/",
-  MiddlewareFactory.authoriseRoles([1]),
-  userController.getAllUsers
-);
+    this.router.get(
+      "/:id/leave-balance",
+      MiddlewareFactory.authoriseRoles([1, 2, 3]),
+      this.controller.getLeaveBalance.bind(this.controller)
+    );
 
-router.post(
-  "/",
-  MiddlewareFactory.authoriseRoles([1]),
-  userController.create
-);
+    this.router.get(
+      "/",
+      MiddlewareFactory.authoriseRoles([1]),
+      this.controller.getAllUsers.bind(this.controller)
+    );
 
-router.patch(
-  "/:id",
-  MiddlewareFactory.authoriseRoles([1]),
-  userController.update
-);
+    this.router.post(
+      "/",
+      MiddlewareFactory.authoriseRoles([1]),
+      this.controller.create.bind(this.controller)
+    );
 
-router.delete(
-  "/:id",
-  MiddlewareFactory.authoriseRoles([1]),
-  userController.delete
-);
+    this.router.patch(
+      "/:id",
+      MiddlewareFactory.authoriseRoles([1]),
+      this.controller.update.bind(this.controller)
+    );
 
-export default router;
+    this.router.delete(
+      "/:id",
+      MiddlewareFactory.authoriseRoles([1]),
+      this.controller.delete.bind(this.controller)
+    );
+
+    return this.router;
+  }
+}

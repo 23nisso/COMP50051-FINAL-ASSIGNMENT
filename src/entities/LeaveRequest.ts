@@ -8,11 +8,11 @@ export class LeaveRequest {
   @PrimaryGeneratedColumn()
   leaveRequestId: number;
 
-  @ManyToOne(() => LeaveType)
+  @ManyToOne(() => LeaveType, (leaveType) => leaveType.leaveRequests, { onDelete: "CASCADE", onUpdate: "CASCADE"})
   @JoinColumn({ name: "leaveTypeId" })
   leaveType: { leaveTypeId: number };
 
-  @ManyToOne(() => User, (user) => user.leaveRequest)
+  @ManyToOne(() => User, (user) => user.leaveRequest, { onDelete: "CASCADE", onUpdate: "CASCADE"})
   @JoinColumn({ name: "userId" })
   user: { userId: number };
 

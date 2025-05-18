@@ -9,7 +9,7 @@ export class UserManagement {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "userId" })
-  user: User;
+  user: { userId: number };
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "managerId" })

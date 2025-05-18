@@ -9,32 +9,37 @@ router.use(MiddlewareFactory.authenticateToken);
 
 router.post(
   "/",
-  MiddlewareFactory.authoriseRoles([3]),
-  leaveRequestController.create
+  MiddlewareFactory.authoriseRoles([1, 3]),
+  leaveRequestController.create.bind(leaveRequestController)
 );
 
 router.get(
   "/pending",
   MiddlewareFactory.authoriseRoles([1, 2]),
-  leaveRequestController.getPendingRequests 
+  leaveRequestController.getPendingRequests.bind(leaveRequestController)
 );
 
 router.patch(
   "/:id/approve",
   MiddlewareFactory.authoriseRoles([1, 2]),
-  leaveRequestController.approved
+  leaveRequestController.approved.bind(leaveRequestController)
 );
 
 router.patch(
   "/:id/reject",
   MiddlewareFactory.authoriseRoles([1, 2]),
-  leaveRequestController.rejected
+  leaveRequestController.rejected.bind(leaveRequestController)
 );
 
 router.delete(
   "/",
-  MiddlewareFactory.authoriseRoles([3]),
-  leaveRequestController.cancelled
+  MiddlewareFactory.authoriseRoles([1, 3]),
+  leaveRequestController.cancelled.bind(leaveRequestController)
 );
 
-export default router
+router.get(
+  "/status/:id",
+  MiddlewareFactory.authoriseRoles([3]),
+  leaveRequestController.getMyRequests
+);
+export default router;

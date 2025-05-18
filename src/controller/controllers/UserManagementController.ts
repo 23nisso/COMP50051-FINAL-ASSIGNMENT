@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
-import { UserManagement } from '../../entities/UserManagement';
-import { AppDataSource } from '../../data-source';
-import { Repository } from 'typeorm';
-import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
+import { Request, Response } from "express";
+import { AppDataSource } from "../../data-source";
+import { UserManagement } from "../../entities/UserManagement";
+import { User } from "../../entities/User";
+import { Repository } from "typeorm";
+import { ResponseHandler } from "../../helpers/handlers/ResponseHandler";
 
 export class UserManagementController {
   private readonly repo: Repository<UserManagement>;
@@ -11,22 +12,38 @@ export class UserManagementController {
     this.repo = AppDataSource.getRepository(UserManagement);
   }
 
-  async getAll(req: Request, res: Response): Promise<void> {
+  public create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const data = await this.repo.find({ relations: ['user', 'manager'] });
-      ResponseHandler.sendSuccessResponse(res, data);
-    } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 500, 'Failed to fetch manager assignments');
-    }
-  }
+      const { userId, managerId, startDate } = req.body;
 
-  async create(req: Request, res: Response): Promise<void> {
-    try {
-      const assignment = this.repo.create(req.body);
-      const result = await this.repo.save(assignment);
-      ResponseHandler.sendSuccessResponse(res, result, 201);
+      const userRepo = AppDataSource.getRepository(User);
+      const user = await userRepo.findOneBy({ userId });
+      const manager = await userRepo.findOneBy({ userId: managerId });
+
+      if (!user || !manager) {
+        return ResponseHandler.sendErrorResponse(res, 404, "User or Manager not found.");
+      }
+
+      const entry = new UserManagement();
+      entry.user = user;
+      entry.manager = manager;
+      entry.startDate = new Date(startDate);
+
+      const saved = await this.repo.save(entry);
+      ResponseHandler.sendSuccessResponse(res, saved, 201);
     } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 400, 'Failed to create manager-user relationship');
+      console.error(error);
+      ResponseHandler.sendErrorResponse(res, 500, "Failed to create user-management entry.");
     }
-  }
+  };
+
+  public getAll = async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const entries = await this.repo.find({ relations: ["user", "manager"] });
+      ResponseHandler.sendSuccessResponse(res, entries);
+    } catch (error) {
+      console.error(error);
+      ResponseHandler.sendErrorResponse(res, 500, "Failed to retrieve user-management records.");
+    }
+  };
 }

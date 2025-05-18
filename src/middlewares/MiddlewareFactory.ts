@@ -20,7 +20,7 @@ export class MiddlewareFactory {
   static jwtRateLimiter(userEmail: string): RequestHandler {
     return rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 500,
+      max: 100,
       message: "Too many requests - try again later",
       standardHeaders: true,
       legacyHeaders: false,
@@ -77,12 +77,12 @@ if (!tokenReceived) {
       }
 
       try {
-        const { email, roleId: role } = payload
-        if (!email || !role) {
+        const { email, roleId: role, userId } = payload;
+          if (!email || !role || !userId) {
           throw new Error();
         }
 
-        req.signedInUser = { email, roleId: role };
+        req.signedInUser = { email, roleId: role, userId };
         next();
       } catch {
         Logger.error("JWT payload malformed");

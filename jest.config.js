@@ -1,11 +1,21 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/__tests__/**/*.test.ts'],
-  moduleFileExtensions: ['ts', 'js'],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-    },
+  roots: ['<rootDir>/src/tests'],
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
+      tsconfig: 'tsconfig.json'
+    }],
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  verbose: true,
+  collectCoverage: true,
+  collectCoverageFrom: [
+    'src/controller/controllers/**/*.ts',
+    '!**/node_modules/**',
+    '!**/vendor/**'
+  ],
+  coverageDirectory: 'coverage',
 };

@@ -49,6 +49,26 @@
 ↓
 # PHPMyAdmin Database → Relational Database that holds all the structure and data of the annual leave system
 -------------------------------------------------------------------------------------------------------------------------------------
+# Role Access Matrix:
+
+------------------------------------------------------------------------------------------------------
+| **Action**                                                | **Employee** | **Manager** | **Admin** |
+|-----------------------------------------------------------|:------------:|:-----------:|:---------:|
+| Request leave                                             | ✅          | ✅          | ✅       |
+| Cancel own leave request                                  | ✅          | ✅          | ✅       |
+| View own leave status                                     | ✅          | ✅          | ✅       |
+| View own remaining leave                                  | ✅          | ✅          | ✅       |
+| View pending leave requests (their team)                  | ❌          | ✅          | ✅       |
+| Approve leave requests (their team)                       | ❌          | ✅          | ✅       |
+| Reject leave requests (their team)                        | ❌          | ✅          | ✅       |
+| View leave balance of team members                        | ❌          | ✅          | ✅       |
+| Add new staff member                                      | ❌          | ❌          | ✅       |
+| Amend staff roles or departments                          | ❌          | ❌          | ✅       |
+| View all pending leave requests (filtered/company-wide)   | ❌          | ❌          | ✅       |
+| Update leave allocation (annual entitlement)              | ❌          | ❌          | ✅       |
+| Approve requests on behalf of any manager                 | ❌          | ❌          | ✅       |
+| Access analytics and system-wide reports                  | ❌          | ❌          | ✅       |
+-------------------------------------------------------------------------------------------------------------------------------------
 # Scenario 1: USER SCENARIOS: Users (Admin, Manager or Employee) attempting to Login (*POST /api/login*)
 
 
@@ -236,23 +256,3 @@
 
 
 -------------------------------------------------------------------------------------------------------------------------------------
-# Role Access Matrix:
-
-------------------------------------------------------------------------------------------------------
-| **Action**                                                | **Employee** | **Manager** | **Admin** |
-|-----------------------------------------------------------|:------------:|:-----------:|:---------:|
-| Request leave                                             | ✅          | ✅          | ✅       |
-| Cancel own leave request                                  | ✅          | ✅          | ✅       |
-| View own leave status                                     | ✅          | ✅          | ✅       |
-| View own remaining leave                                  | ✅          | ✅          | ✅       |
-| View pending leave requests (their team)                  | ❌          | ✅          | ✅       |
-| Approve leave requests (their team)                       | ❌          | ✅          | ✅       |
-| Reject leave requests (their team)                        | ❌          | ✅          | ✅       |
-| View leave balance of team members                        | ❌          | ✅          | ✅       |
-| Add new staff member                                      | ❌          | ❌          | ✅       |
-| Amend staff roles or departments                          | ❌          | ❌          | ✅       |
-| View all pending leave requests (filtered/company-wide)   | ❌          | ❌          | ✅       |
-| Update leave allocation (annual entitlement)              | ❌          | ❌          | ✅       |
-| Approve requests on behalf of any manager                 | ❌          | ❌          | ✅       |
-| Access analytics and system-wide reports                  | ❌          | ❌          | ✅       |
-------------------------------------------------------------------------------------------------------

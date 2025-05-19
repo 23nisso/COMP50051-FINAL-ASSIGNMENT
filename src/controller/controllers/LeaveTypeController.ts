@@ -11,7 +11,7 @@ export class LeaveTypeController {
     this.repo = AppDataSource.getRepository(LeaveType);
   }
 
-  async getAll(req: Request, res: Response): Promise<void> {
+  public async getAll(req: Request, res: Response): Promise<void> {
     try {
       const data = await this.repo.find();
       ResponseHandler.sendSuccessResponse(res, data);
@@ -20,7 +20,7 @@ export class LeaveTypeController {
     }
   }
 
-  async create(req: Request, res: Response): Promise<void> {
+  public async create(req: Request, res: Response): Promise<void> {
     try {
       const leaveTypeId = this.repo.create(req.body);
       const result = await this.repo.save(leaveTypeId);

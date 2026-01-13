@@ -1,7 +1,7 @@
-import { LeaveTypeController } from "../../src/controller/controllers/LeaveTypeController";
-import { AppDataSource } from "../../src/data-source";
-import { LeaveType } from "../../src/entities/LeaveType";
-import { ResponseHandler } from "../../src/helpers/handlers/ResponseHandler";
+import { LeaveTypeController } from "../controller/controllers/LeaveTypeController";
+import { AppDataSource } from "../data-source";
+import { LeaveType } from "../entities/LeaveType";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 import { Request, Response } from "express";
 import { Repository } from "typeorm";
 

@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { UserManagementController } from "../../src/controller/controllers/UserManagementController";
-import { User } from "../../src/entities/User";
-import { UserManagement } from "../../src/entities/UserManagement";
-import { AppDataSource } from "../../src/data-source";
-import { ResponseHandler } from "../../src/helpers/handlers/ResponseHandler";
+import { UserManagementController } from "../controller/controllers/UserManagementController";
+import { User } from "../entities/User";
+import { UserManagement } from "../entities/UserManagement";
+import { AppDataSource } from "../data-source";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 
 jest.mock("../../src/data-source", () => ({
   AppDataSource: {

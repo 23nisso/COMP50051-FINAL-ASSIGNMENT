@@ -1,10 +1,10 @@
-import { LeaveRequestController } from "../../src/controller/controllers/LeaveRequestController";
-import { AppDataSource } from "../../src/data-source";
-import { User } from "../../src/entities/User";
-import { LeaveType } from "../../src/entities/LeaveType";
-import { LeaveRequest } from "../../src/entities/LeaveRequest";
-import { UserManagement } from "../../src/entities/UserManagement";
-import { ResponseHandler } from "../../src/helpers/handlers/ResponseHandler";
+import { LeaveRequestController } from "../controller/controllers/LeaveRequestController";
+import { AppDataSource } from "../data-source";
+import { User } from "../entities/User";
+import { LeaveType } from "../entities/LeaveType";
+import { LeaveRequest } from "../entities/LeaveRequest";
+import { UserManagement } from "../entities/UserManagement";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 import { Request, Response } from "express";
 import { Repository } from "typeorm";
 

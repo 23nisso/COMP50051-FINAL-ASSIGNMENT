@@ -1,8 +1,8 @@
-import { LoginController } from "../../src/controller/controllers/LoginController";
-import { AppDataSource } from "../../src/data-source";
-import { User } from "../../src/entities/User";
-import { ResponseHandler } from "../../src/helpers/handlers/ResponseHandler";
-import { PasswordHandler } from "../../src/helpers/handlers/PasswordHandler";
+import { LoginController } from "../controller/controllers/LoginController";
+import { AppDataSource } from "../data-source";
+import { User } from "../entities/User";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
+import { PasswordHandler } from "../helpers/handlers/PasswordHandler";
 import { Request, Response } from "express";
 
 jest.mock("../../src/data-source", () => ({

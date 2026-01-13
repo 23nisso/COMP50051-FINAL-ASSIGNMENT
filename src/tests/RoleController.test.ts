@@ -1,7 +1,7 @@
-import { RoleController } from "../../src/controller/controllers/RoleController";
-import { AppDataSource } from "../../src/data-source";
-import { Role } from "../../src/entities/Role";
-import { ResponseHandler } from "../../src/helpers/handlers/ResponseHandler";
+import { RoleController } from "../controller/controllers/RoleController";
+import { AppDataSource } from "../data-source";
+import { Role } from "../entities/Role";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 import { Request, Response } from "express";
 import { Repository } from "typeorm";
 import { validate } from "class-validator";

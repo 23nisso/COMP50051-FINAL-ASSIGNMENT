@@ -1,7 +1,7 @@
 import { Response } from "express";
-import { ResponseHandler } from "../handlers/ResponseHandler";
-import { AppError } from "../../helpers/AppError";
-import { Logger } from "../../helpers/Logger";
+import { ResponseHandler } from "./ResponseHandler";
+import { AppError } from "../AppError";
+import { Logger } from "../Logger";
 
 export class ErrorHandler {
     static handle(err: AppError, res: Response): void {

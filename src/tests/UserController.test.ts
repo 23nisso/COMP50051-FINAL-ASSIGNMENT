@@ -1,7 +1,7 @@
-import { UserController } from "../../src/controller/controllers/UserController";
-import { AppDataSource } from "../../src/data-source";
-import { User } from "../../src/entities/User";
-import { ResponseHandler } from "../../src/helpers/handlers/ResponseHandler";
+import { UserController } from "../controller/controllers/UserController";
+import { AppDataSource } from "../data-source";
+import { User } from "../entities/User";
+import { ResponseHandler } from "../helpers/handlers/ResponseHandler";
 import { Request, Response } from "express";
 import { Repository } from "typeorm";
 import { validate } from "class-validator";

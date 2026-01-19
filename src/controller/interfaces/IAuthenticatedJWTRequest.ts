@@ -1,9 +1,16 @@
 import { Request } from "express";
 
+export interface ISignedInUser {
+  userId: number;
+  roleId: number;
+  email: string;
+}
+
 export interface IAuthenticatedJWTRequest extends Request {
-  signedInUser?: {
-    email: string;
-    roleId: string;
-    userId: number;
+  body: any;
+  params: {
+    id?: string;
+    [key: string]: string | undefined;
   };
+  signedInUser?: ISignedInUser;
 }

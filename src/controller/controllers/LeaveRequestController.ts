@@ -1,253 +1,324 @@
-import { Request, Response } from 'express';
-import { LeaveRequest } from '../../entities/LeaveRequest';
-import { User } from '../../entities/User';
-import { LeaveType } from '../../entities/LeaveType';
-import { AppDataSource } from '../../data-source';
-import { Repository, In } from 'typeorm';
-import { ResponseHandler } from '../../helpers/handlers/ResponseHandler';
-import { IAuthenticatedJWTRequest } from '../interfaces/IAuthenticatedJWTRequest';
+import { Response } from "express";
+import { In, Repository } from "typeorm";
+import { AppDataSource } from "../../data-source";
+import { LeaveRequest } from "../../entities/LeaveRequest";
+import { User } from "../../entities/User";
+import { LeaveType } from "../../entities/LeaveType";
 import { UserManagement } from "../../entities/UserManagement";
+import { ResponseHandler } from "../../helpers/handlers/ResponseHandler";
+import { IAuthenticatedJWTRequest } from "../interfaces/IAuthenticatedJWTRequest";
 
 export class LeaveRequestController {
-  private readonly repo: Repository<LeaveRequest>;
+  private repo: Repository<LeaveRequest>;
 
   constructor() {
     this.repo = AppDataSource.getRepository(LeaveRequest);
   }
 
-async getAll(req: Request, res: Response): Promise<void> {
-  try {
-    const data = await this.repo.find({ relations: ['user', 'leaveType'] });
+  // =====================
+  // CREATE LEAVE REQUEST
+  // =====================
+  public create = async (
+    req: IAuthenticatedJWTRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { leaveTypeId, startDate, endDate, reason } = req.body;
+      const userId = req.signedInUser?.userId;
+
+      if (!userId || !leaveTypeId || !startDate || !endDate) {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          400,
+          "All required fields must be provided."
+        );
+      }
+
+      const userRepo = AppDataSource.getRepository(User);
+      const leaveTypeRepo = AppDataSource.getRepository(LeaveType);
+
+      const user = await userRepo.findOneBy({ userId });
+      const leaveType = await leaveTypeRepo.findOneBy({ leaveTypeId });
+
+      if (!user || !leaveType) {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          404,
+          "User or Leave Type not found."
+        );
+      }
+
+      const request = new LeaveRequest();
+      request.user = user;
+      request.leaveType = leaveType;
+      request.startDate = new Date(startDate);
+      request.endDate = new Date(endDate);
+      request.reason = reason ?? null;
+      request.status = "Pending";
+
+      const saved = await this.repo.save(request);
+      ResponseHandler.sendSuccessResponse(res, saved, 201);
+    } catch (err) {
+      console.error("Create leave request error:", err);
+      ResponseHandler.sendErrorResponse(
+        res,
+        500,
+        "Failed to create leave request."
+      );
+    }
+  };
+
+  // =====================
+  // GET MY REQUESTS (Employee)
+  // =====================
+  public getMyRequests = async (
+    req: IAuthenticatedJWTRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const userId = req.signedInUser?.userId;
+      if (!userId) {
+        return ResponseHandler.sendErrorResponse(res, 401, "Unauthenticated");
+      }
+
+      const data = await this.repo.find({
+        where: { user: { userId } },
+        relations: ["leaveType"],
+      });
+
       ResponseHandler.sendSuccessResponse(res, data);
-  } catch (error) {
-      ResponseHandler.sendErrorResponse(res, 500, 'Failed to retrieve leave requests. Ensure the database connection is established and the query is valid.');
+    } catch (err) {
+      console.error("Get my requests error:", err);
+      ResponseHandler.sendErrorResponse(
+        res,
+        500,
+        "Failed to fetch leave requests."
+      );
     }
-  }
+  };
 
-async create(req: Request, res: Response): Promise<void> {
-  try {
-    const { userId, leaveTypeId, startDate, endDate, reason } = req.body;
+  // =====================
+  // GET PENDING REQUESTS (Manager)
+  // =====================
+  public getPendingRequests = async (
+    req: IAuthenticatedJWTRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const managerId = req.signedInUser?.userId;
+      if (!managerId) {
+        return ResponseHandler.sendErrorResponse(res, 401, "Unauthenticated");
+      }
 
-    if (!userId || !leaveTypeId || !startDate || !endDate) {
-      return ResponseHandler.sendErrorResponse(res, 400, "All required fields must be provided.");
+      const umRepo = AppDataSource.getRepository(UserManagement);
+      const assignments = await umRepo.find({
+        where: { manager: { userId: managerId } },
+        relations: ["user"],
+      });
+
+      const userIds = assignments.map((a) => a.user.userId);
+
+      // If manager has no assigned users, return empty array
+      if (userIds.length === 0) {
+        return ResponseHandler.sendSuccessResponse(res, []);
+      }
+
+      const requests = await this.repo.find({
+        where: {
+          status: "Pending",
+          user: { userId: In(userIds) },
+        },
+        relations: ["user", "leaveType"],
+      });
+
+      ResponseHandler.sendSuccessResponse(res, requests);
+    } catch (err) {
+      console.error("Get pending requests error:", err);
+      ResponseHandler.sendErrorResponse(
+        res,
+        500,
+        "Failed to fetch pending requests."
+      );
     }
+  };
 
-    const userRepo = AppDataSource.getRepository(User);
-    const leaveTypeRepo = AppDataSource.getRepository(LeaveType);
+  // =====================
+  // APPROVE REQUEST (Manager/Admin)
+  // =====================
+  public approved = async (
+    req: IAuthenticatedJWTRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      // Get ID from params (URL parameter)
+      const requestId = Number(req.params.id);
 
-    const user = await userRepo.findOneBy({ userId });
-    const leaveType = await leaveTypeRepo.findOneBy({ leaveTypeId });
+      console.log("Approve request - ID from params:", requestId);
 
-    if (!user || !leaveType) {
-      return ResponseHandler.sendErrorResponse(res, 404, "User or Leave Type not found.");
+      if (!requestId || isNaN(requestId)) {
+        return ResponseHandler.sendErrorResponse(res, 400, "Invalid request ID.");
+      }
+
+      const leaveRequest = await this.repo.findOne({
+        where: { leaveRequestId: requestId },
+        relations: ["user"],
+      });
+
+      console.log("Found leave request:", leaveRequest);
+
+      if (!leaveRequest) {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          404,
+          "Leave request not found."
+        );
+      }
+
+      if (leaveRequest.status !== "Pending") {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          400,
+          `Cannot approve request with status: ${leaveRequest.status}`
+        );
+      }
+
+      const start = new Date(leaveRequest.startDate);
+      const end = new Date(leaveRequest.endDate);
+      const days = Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1;
+
+      const userRepo = AppDataSource.getRepository(User);
+      const user = await userRepo.findOneBy({
+        userId: leaveRequest.user.userId,
+      });
+
+      if (!user) {
+        return ResponseHandler.sendErrorResponse(res, 404, "User not found.");
+      }
+
+      if (user.annualLeaveBalance < days) {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          400,
+          `Insufficient leave balance. User has ${user.annualLeaveBalance} days, requested ${days} days.`
+        );
+      }
+
+      // Update user's leave balance
+      await userRepo.update(user.userId, {
+        annualLeaveBalance: user.annualLeaveBalance - days,
+      });
+
+      // Update leave request status
+      leaveRequest.status = "Approved";
+      await this.repo.save(leaveRequest);
+
+      ResponseHandler.sendSuccessResponse(res, {
+        message: "Leave request approved",
+        daysDeducted: days,
+        newBalance: user.annualLeaveBalance - days,
+      });
+    } catch (err) {
+      console.error("Approve request error:", err);
+      ResponseHandler.sendErrorResponse(res, 500, "Failed to approve request.");
     }
+  };
 
-    const newRequest = new LeaveRequest();
-    newRequest.user = user;
-    newRequest.leaveType = leaveType;
-    newRequest.startDate = new Date(startDate);
-    newRequest.endDate = new Date(endDate);
-    newRequest.reason = reason || null;
+  // =====================
+  // REJECT REQUEST (Manager/Admin)
+  // =====================
+  public rejected = async (
+    req: IAuthenticatedJWTRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      // Get ID from params (URL parameter)
+      const requestId = Number(req.params.id);
 
-    const result = await this.repo.save(newRequest);
-    ResponseHandler.sendSuccessResponse(res, result, 201);
-  } catch (error) {
-    console.error(error);
-    ResponseHandler.sendErrorResponse(res, 400, "Failed to create leave request. Ensure all required fields are valid.");
-  }
+      console.log("Reject request - ID from params:", requestId);
+
+      if (!requestId || isNaN(requestId)) {
+        return ResponseHandler.sendErrorResponse(res, 400, "Invalid request ID.");
+      }
+
+      const leaveRequest = await this.repo.findOneBy({
+        leaveRequestId: requestId,
+      });
+
+      console.log("Found leave request:", leaveRequest);
+
+      if (!leaveRequest) {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          404,
+          "Leave request not found."
+        );
+      }
+
+      if (leaveRequest.status !== "Pending") {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          400,
+          `Cannot reject request with status: ${leaveRequest.status}`
+        );
+      }
+
+      leaveRequest.status = "Rejected";
+      await this.repo.save(leaveRequest);
+
+      ResponseHandler.sendSuccessResponse(res, {
+        message: "Leave request rejected",
+      });
+    } catch (err) {
+      console.error("Reject request error:", err);
+      ResponseHandler.sendErrorResponse(res, 500, "Failed to reject request.");
+    }
+  };
+
+  // =====================
+  // CANCEL REQUEST (Employee/All)
+  // =====================
+  public cancelled = async (
+    req: IAuthenticatedJWTRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      // Get ID from params (URL parameter)
+      const requestId = Number(req.params.id);
+
+      console.log("Cancel request - ID from params:", requestId);
+
+      if (!requestId || isNaN(requestId)) {
+        return ResponseHandler.sendErrorResponse(res, 400, "Invalid request ID.");
+      }
+
+      const leaveRequest = await this.repo.findOneBy({
+        leaveRequestId: requestId,
+      });
+
+      console.log("Found leave request:", leaveRequest);
+
+      if (!leaveRequest) {
+        return ResponseHandler.sendErrorResponse(res, 404, "Leave request not found.");
+      }
+
+      // Only allow cancelling pending requests
+      if (leaveRequest.status !== "Pending") {
+        return ResponseHandler.sendErrorResponse(
+          res,
+          400,
+          `Cannot cancel request with status: ${leaveRequest.status}`
+        );
+      }
+
+      leaveRequest.status = "Cancelled";
+      await this.repo.save(leaveRequest);
+
+      ResponseHandler.sendSuccessResponse(res, {
+        message: "Leave request cancelled",
+      });
+    } catch (err) {
+      console.error("Cancel request error:", err);
+      ResponseHandler.sendErrorResponse(res, 500, "Failed to cancel request.");
+    }
+  };
 }
-  public getPendingRequests = async (req: IAuthenticatedJWTRequest, res: Response): Promise<void> => {
-  const managerId = req.signedInUser?.userId;
-
-  const userManagementRepo = AppDataSource.getRepository(UserManagement);
-  const leaveRequestRepo = AppDataSource.getRepository(LeaveRequest);
-
-  const teamAssignments = await userManagementRepo.find({
-    where: { manager: { userId: managerId } },
-    relations: ["user"]
-  });
-
-  const teamUserIds = teamAssignments.map(entry => entry.user.userId);
-
-  const pendingRequests = await leaveRequestRepo.find({
-    where: {
-      status: "Pending",
-      user: { userId: In(teamUserIds) }
-    },
-    relations: ["user", "leaveType"]
-  });
-
-  ResponseHandler.sendSuccessResponse(res, pendingRequests);
-};
-
-public approved = async (req: Request, res: Response): Promise<void> => {
-  const requestId = parseInt(req.params.id);
-
-  try {
-    const leaveRequest = await this.repo.findOne({
-      where: { leaveRequestId: requestId },
-      relations: ["user"],
-    });
-
-    if (!leaveRequest) {
-      return ResponseHandler.sendErrorResponse(res, 404, "Leave request not found.");
-    }
-
-    if (leaveRequest.status !== "Pending") {
-      return ResponseHandler.sendErrorResponse(res, 400, "Only pending requests can be approved.");
-    }
-
-    const start = new Date(leaveRequest.startDate);
-    const end = new Date(leaveRequest.endDate);
-    const oneDay = 1000 * 60 * 60 * 24;
-    const daysRequested = Math.ceil((end.getTime() - start.getTime()) / oneDay) + 1;
-
-    const userRepo = AppDataSource.getRepository(User);
-    const user = await userRepo
-      .createQueryBuilder("user")
-      .addSelect(["user.password", "user.salt"])
-      .where("user.userId = :id", { id: leaveRequest.user.userId })
-      .getOne();
-
-    if (!user) {
-      return ResponseHandler.sendErrorResponse(res, 404, "User not found.");
-    }
-
-    if (user.annualLeaveBalance < daysRequested) {
-      return ResponseHandler.sendErrorResponse(res, 400, "Insufficient leave balance.");
-    }
-
-    await userRepo.update(user.userId, {
-      annualLeaveBalance: user.annualLeaveBalance - daysRequested,
-    });
-
-    leaveRequest.status = "Approved";
-    await this.repo.save(leaveRequest);
-
-    const { password, salt, ...safeUser } = user;
-    const { user: _omit, ...safeLeaveRequest } = leaveRequest;
-
-    ResponseHandler.sendSuccessResponse(res, {
-      message: "Leave request approved",
-      daysDeducted: daysRequested,
-      updatedBalance: user.annualLeaveBalance - daysRequested,
-      request: {
-        ...safeLeaveRequest,
-        user: safeUser,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    ResponseHandler.sendErrorResponse(res, 500, "Failed to approve leave request.");
-  }
-};
-
-public rejected = async (req: Request, res: Response): Promise<void> => {
-  const requestId = parseInt(req.params.id);
-
-  try {
-    const leaveRequest = await this.repo.findOne({
-      where: { leaveRequestId: requestId },
-      relations: ["user"]
-    });
-
-    if (!leaveRequest) {
-      return ResponseHandler.sendErrorResponse(res, 404, "Leave request not found.");
-    }
-
-    if (leaveRequest.status !== "Pending") {
-      return ResponseHandler.sendErrorResponse(res, 400, "Only pending requests can be rejected.");
-    }
-
-    await this.repo.update(requestId, { status: "Rejected" });
-
-    const userRepo = AppDataSource.getRepository(User);
-    const user = await userRepo
-      .createQueryBuilder("user")
-      .addSelect(["user.password", "user.salt"])
-      .where("user.userId = :id", { id: leaveRequest.user.userId })
-      .getOne();
-
-    const { password, salt, ...safeUser } = user;
-    const { user: _omit, ...safeLeaveRequest } = leaveRequest;
-
-    ResponseHandler.sendSuccessResponse(res, {
-      message: "Leave request rejected",
-      request: {
-        ...safeLeaveRequest,
-        status: "Rejected",
-        user: safeUser
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    ResponseHandler.sendErrorResponse(res, 500, "Failed to reject leave request.");
-  }
-};
-
-public cancelled = async (req: Request, res: Response): Promise<void> => {
-  const requestId = parseInt(req.body.leaveRequestId);
-
-  try {
-    const leaveRequest = await this.repo.findOne({
-      where: { leaveRequestId: requestId },
-      relations: ["user"]
-    });
-
-    if (!leaveRequest) {
-      return ResponseHandler.sendErrorResponse(res, 404, "Leave request not found.");
-    }
-
-    if (leaveRequest.status !== "Pending") {
-      return ResponseHandler.sendErrorResponse(res, 400, "Only pending requests can be cancelled.");
-    }
-
-    await this.repo.update(requestId, { status: "Cancelled" });
-
-    const userRepo = AppDataSource.getRepository(User);
-    const user = await userRepo
-      .createQueryBuilder("user")
-      .addSelect(["user.password", "user.salt"])
-      .where("user.userId = :id", { id: leaveRequest.user.userId })
-      .getOne();
-
-    const { password, salt, ...safeUser } = user;
-    const { user: _omit, ...safeLeaveRequest } = leaveRequest;
-
-    ResponseHandler.sendSuccessResponse(res, {
-      message: "Leave request cancelled",
-      request: {
-        ...safeLeaveRequest,
-        status: "Cancelled",
-        user: safeUser
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    ResponseHandler.sendErrorResponse(res, 500, "Failed to cancel leave request.");
-  }
-};
-public getMyRequests = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = req.signedInUser?.userId;
-
-    if (!userId) {
-      return ResponseHandler.sendErrorResponse(res, 400, "User not authenticated.");
-    }
-
-    const myRequests = await this.repo.find({
-      where: { user: { userId } },
-      relations: ["leaveType"]
-    });
-
-    if (myRequests.length === 0) {
-      return ResponseHandler.sendSuccessResponse(res, [], 204);
-    }
-
-    const safeRequests = myRequests.map(({ user, ...rest }) => rest);
-    ResponseHandler.sendSuccessResponse(res, safeRequests);
-  } catch (error) {
-    console.error(error);
-    ResponseHandler.sendErrorResponse(res, 500, "Failed to retrieve leave requests.");
-  }
-}}

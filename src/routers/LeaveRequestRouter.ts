@@ -4,54 +4,76 @@ import { MiddlewareFactory } from "../middlewares/MiddlewareFactory";
 import { IRouter } from "./IRouter";
 
 export class LeaveRequestRouter implements IRouter {
-  routeName = "LeaveRequest";
-  basePath = "/api/leave-requests";
-  authenticate = true;
+  public routeName = "Leave Requests";
+  public basePath = "/api/leave-requests";
+  public authenticate = true;
 
-  constructor(
-    private readonly router: Router,
-    private readonly controller: LeaveRequestController
-  ) {}
+  private router: Router;
+  private controller: LeaveRequestController;
 
-  getRouter(): Router {
-    this.router.use(MiddlewareFactory.authenticateToken);
+  constructor() {
+    this.router = Router();
+    this.controller = new LeaveRequestController();
+    this.setupRoutes();
+  }
 
+  private setupRoutes(): void {
+    // =========================
+    // CREATE (EMPLOYEE + ADMIN)
+    // =========================
     this.router.post(
       "/",
       MiddlewareFactory.authoriseRoles([1, 3]),
-      this.controller.create.bind(this.controller)
+      this.controller.create
     );
 
+    // =========================
+    // GET MY REQUESTS (EMPLOYEE)
+    // =========================
+    this.router.get(
+      "/",
+      MiddlewareFactory.authoriseRoles([3]),
+      this.controller.getMyRequests
+    );
+
+    // =========================
+    // GET PENDING (MANAGER + ADMIN)
+    // =========================
     this.router.get(
       "/pending",
       MiddlewareFactory.authoriseRoles([1, 2]),
-      this.controller.getPendingRequests.bind(this.controller)
+      this.controller.getPendingRequests
     );
 
+    // =========================
+    // APPROVE (MANAGER + ADMIN)
+    // =========================
     this.router.patch(
       "/:id/approve",
       MiddlewareFactory.authoriseRoles([1, 2]),
-      this.controller.approved.bind(this.controller)
+      this.controller.approved
     );
 
+    // =========================
+    // REJECT (MANAGER + ADMIN)
+    // =========================
     this.router.patch(
       "/:id/reject",
       MiddlewareFactory.authoriseRoles([1, 2]),
-      this.controller.rejected.bind(this.controller)
+      this.controller.rejected
     );
 
+    // =========================
+    // CANCEL (ALL ROLES)
+    // =========================
     this.router.delete(
-      "/",
-      MiddlewareFactory.authoriseRoles([1, 3]),
-      this.controller.cancelled.bind(this.controller)
+      "/:id",
+      MiddlewareFactory.authoriseRoles([1, 2, 3]),
+      this.controller.cancelled
     );
+  }
 
-    this.router.get(
-      "/status/:id",
-      MiddlewareFactory.authoriseRoles([3]),
-      this.controller.getMyRequests.bind(this.controller)
-    );
-
+  public getRouter(): Router {
     return this.router;
   }
 }

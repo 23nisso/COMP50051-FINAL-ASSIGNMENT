@@ -32,5 +32,3 @@ export class PasswordHandler {
                                 Buffer.from(hashToCompare, "hex"));
     }
 }
-
-

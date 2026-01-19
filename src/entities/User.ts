@@ -1,9 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, BeforeInsert, BeforeUpdate} from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  BeforeInsert,
+  BeforeUpdate,
+} from "typeorm";
 import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
+import bcrypt from "bcrypt";
+
 import { Role } from "./Role";
 import { Department } from "./Department";
 import { LeaveRequest } from "./LeaveRequest";
-import { PasswordHandler } from "../helpers/handlers/PasswordHandler";
 
 @Entity()
 export class User {
@@ -40,24 +50,18 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @Column({ select: false })
-  salt: string;
-
   @Column({ default: 25 })
   annualLeaveBalance: number;
 
   @OneToMany(() => LeaveRequest, (leaveRequest) => leaveRequest.user)
-  leaveRequest: LeaveRequest[];
+  leaveRequests: LeaveRequest[];
 
   @BeforeInsert()
   @BeforeUpdate()
-  hashPassword(): void {
-    if (!this.password || this.password.startsWith('$') || this.password.length === 128) return;
+  async hashPassword(): Promise<void> {
+    if (!this.password || this.password.startsWith("$2b$")) return;
 
-      const { hashedPassword, salt } = PasswordHandler.hashPassword(this.password);
-      
-      this.password = hashedPassword;
-      this.salt = salt;
-  };
+    const saltRounds = 10;
+    this.password = await bcrypt.hash(this.password, saltRounds);
+  }
 }
-

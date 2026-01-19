@@ -1,79 +1,98 @@
 import express from "express";
 import { DataSource } from "typeorm";
-import morgan, {StreamOptions} from "morgan";
+import morgan, { StreamOptions } from "morgan";
 import { Logger } from "./helpers/Logger";
 import { MiddlewareFactory } from "./middlewares/MiddlewareFactory";
-import { IRouter} from "./routers/IRouter";
+import { IRouter } from "./routers/IRouter";
 import { ErrorHandler } from "./helpers/handlers/ErrorHandler";
+import cors from "cors";
 
 export class Server {
-    public static readonly ERROR_TOKEN_IS_INVALID = "Not authorised - Token is invalid";
-    public static readonly ERROR_TOKEN_NOT_FOUND = "Not authorised - Token not found";
-    public static readonly ERROR_TOKEN_SECRET_NOT_DEFINED = "Token secret not found/defined";
-    private readonly app: express.Application;
+  public static readonly ERROR_TOKEN_IS_INVALID =
+    "Not authorised - Token is invalid";
+  public static readonly ERROR_TOKEN_NOT_FOUND =
+    "Not authorised - Token not found";
+  public static readonly ERROR_TOKEN_SECRET_NOT_DEFINED =
+    "Token secret not found/defined";
 
-    constructor(private readonly port: string | number, 
-                private readonly routers: IRouter[],
-                private readonly appDataSource: DataSource
-    ) {
-        this.app = express();
-    
-        this.initialiseMiddlewares();       
-        this.initialiseRoutes();
-        this.initialiseErrorHandling(); 
+  private readonly app: express.Application;
+
+  constructor(
+    private readonly port: string | number,
+    private readonly routers: IRouter[],
+    private readonly appDataSource: DataSource
+  ) {
+    this.app = express();
+
+    this.initialiseMiddlewares();
+    this.initialiseRoutes();
+    this.initialiseErrorHandling();
+  }
+
+  private initialiseMiddlewares() {
+    const morganStream: StreamOptions = {
+      write: (message: string): void => {
+        Logger.info(message.trim());
+      },
+    };
+
+    // ✅ CORS configuration with PATCH method included
+    this.app.use(
+      cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // ✅ PATCH added
+      })
+    );
+
+    this.app.use(express.json());
+    this.app.use(morgan("combined", { stream: morganStream }));
+  }
+
+  private initialiseRoutes() {
+    for (const route of this.routers) {
+      const middlewares: express.RequestHandler[] = [];
+
+      if (route.authenticate) {
+        middlewares.push(MiddlewareFactory.authenticateToken);
+      }
+
+      if (route.basePath === "/api/login") {
+        middlewares.push(MiddlewareFactory.loginLimiter());
+      } else {
+        middlewares.push(
+          MiddlewareFactory.jwtRateLimitMiddleware(route.routeName)
+        );
+      }
+
+      middlewares.push(MiddlewareFactory.logRouteAccess(route.routeName));
+
+      this.app.use(route.basePath, ...middlewares, route.getRouter());
     }
+  }
 
-    private initialiseMiddlewares() {
-        const morganStream: StreamOptions = {
-            write: (message: string): void => {
-                Logger.info(message.trim());  
-            }
-        };
+  private initialiseErrorHandling() {
+    this.app.use((err, req, res, next) => {
+      ErrorHandler.handle(err, res);
+    });
+  }
 
-        this.app.use(express.json());
-        this.app.use(morgan("combined", { stream: morganStream }));
+  public async start() {
+    await this.initialiseDataSource();
+    this.app.listen(this.port, () => {
+      Logger.info(`Server running on http://localhost:${this.port}`);
+    });
+  }
+
+  private async initialiseDataSource() {
+    try {
+      await this.appDataSource.initialize();
+
+      Logger.info("Data Source initialised");
+    } catch (error) {
+      Logger.error("Error during initialisation:", error);
+      throw error;
     }
-
-    private initialiseRoutes() {
-        for (const route of this.routers) {
-            const middlewares: express.RequestHandler[] = [];
-
-            if (route.authenticate) {
-                middlewares.push(MiddlewareFactory.authenticateToken);
-            }
-    
-            if (route.basePath === "/api/login") {
-                middlewares.push(MiddlewareFactory.loginLimiter());
-            } else {
-                middlewares.push(MiddlewareFactory.jwtRateLimitMiddleware(route.routeName));
-           }
-    
-            middlewares.push(MiddlewareFactory.logRouteAccess(route.routeName));
-
-            this.app.use(route.basePath, ...middlewares, route.getRouter());}
-    }
-    
-    private initialiseErrorHandling() { 
-        this.app.use((err, req, res, next) => {
-            ErrorHandler.handle(err, res);
-        });    
-    }
-
-    public async start() {
-        await this.initialiseDataSource();
-        this.app.listen(this.port, () => {
-            Logger.info(`Server running on http://localhost:${this.port}`);
-        });
-    }
-
-    private async initialiseDataSource() {
-        try {
-            await this.appDataSource.initialize();
-
-            Logger.info("Data Source initialised");
-        } catch (error) {
-            Logger.error("Error during initialisation:", error);
-            throw error;
-        }
-    }
+  }
 }

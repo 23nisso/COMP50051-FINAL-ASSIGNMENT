@@ -11,7 +11,7 @@
       "experimentalDecorators": true,
       "sourceMap": true,
       "types": ["jest"],
-      "esModuleInterop": true,
+      "esModuleInterop": true
    },
 "include": ["src/**/*", "src/tests/RoleController.test.ts", "src/tests/UserController.test.ts", "../tests/entity-tests/Role.test.ts", "../interfaces", "../routers"],
    "exclude": ["node_modules"]

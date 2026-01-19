@@ -1,58 +1,60 @@
-import { AppDataSource } from '../../data-source'; 
-import { User } from '../../entities/User';
-import { Repository } from "typeorm";
-import { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import { PasswordHandler } from '../../helpers/handlers/PasswordHandler';
-import { UserDTOToken } from '../data-transfer-objects/UserDTOToken'
-import jwt from 'jsonwebtoken';
-import { AppError } from "../../helpers/AppError";
+import { AppDataSource } from "../../data-source";
+import { User } from "../../entities/User";
+import { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { ResponseHandler } from "../../helpers/handlers/ResponseHandler";
 
-export interface ILoginController {
-    login(req: Request, res: Response): Promise<void>;
-}
+export class LoginController {
+  private userRepository = AppDataSource.getRepository(User);
 
-export class LoginController implements ILoginController {
-    public static readonly ERROR_NO_EMAIL_PROVIDED = "No email provided";
-    public static readonly ERROR_NO_PASSWORD_PROVIDED = "No password provided";
-    public static readonly ERROR_USER_NOT_FOUND = "User not found";
-    public static readonly ERROR_PASSWORD_INCORRECT = "Password incorrect";
+  public async login(req: Request, res: Response): Promise<Response> {
+    const { email, password } = req.body;
 
-    private userRepository: Repository<User>;
-    
-    constructor() {
-            this.userRepository = AppDataSource.getRepository(User);
+    if (!email || !password) {
+      return ResponseHandler.sendErrorResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Both email and password are required"
+      );
     }
-    
-    public login = async (req: Request, res: Response): Promise<void> => {
-        let email = req.body.email;
-        if (!email || email.trim().length === 0) {
-            throw new AppError(LoginController.ERROR_NO_EMAIL_PROVIDED);
-        }
 
-        let password = req.body.password;
-        if (!password || password.trim().length === 0) {
-            throw new AppError(LoginController.ERROR_NO_PASSWORD_PROVIDED);
-        }
+    const user = await this.userRepository
+      .createQueryBuilder("user")
+      .addSelect("user.password")
+      .leftJoinAndSelect("user.role", "role")
+      .where("user.email = :email", { email })
+      .getOne();
 
-        const user = await this.userRepository.createQueryBuilder("user")
-  .addSelect(["user.password", "user.salt"])
-  .leftJoinAndSelect("user.role", "role")
-  .where("user.email = :email", { email })
-  .getOne();
+    if (!user) {
+      return ResponseHandler.sendErrorResponse(
+        res,
+        StatusCodes.UNAUTHORIZED,
+        "Invalid email or password"
+      );
+    }
 
-        if (!user) {
-            throw new AppError(LoginController.ERROR_USER_NOT_FOUND);
-        }
+    const passwordValid = await bcrypt.compare(password, user.password);
 
-        if (!PasswordHandler.verifyPassword(password, user.password, user.salt)){
-            throw new AppError(LoginController.ERROR_PASSWORD_INCORRECT);
-        }
-        let token = new UserDTOToken(user.email, user.role.roleId);
+    if (!passwordValid) {
+      return ResponseHandler.sendErrorResponse(
+        res,
+        StatusCodes.UNAUTHORIZED,
+        "Invalid email or password"
+      );
+    }
 
-        res.status(StatusCodes.ACCEPTED).send(jwt.sign({ token }, 
-                                                process.env.JWT_SECRET, 
-                                                { expiresIn: '3h' }));
-    
-    };
+    const token = jwt.sign(
+      {
+        email: user.email,
+        roleId: user.role.roleId,
+        userId: user.userId,
+      },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1h" }
+    );
+
+    return ResponseHandler.sendSuccessResponse(res, { token });
+  }
 }
